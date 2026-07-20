@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>J.B.C Crome — VTC ETS2</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+  :root{
+    --steel-900:#14161a;
+    --steel-800:#1f2227;
+    --steel-700:#2b2e34;
+    --chrome-300:#c7ccd3;
+    --chrome-100:#eef0f2;
+    --chrome-white:#ffffff;
+    --arc-blue:#5fd1ff;
+    --arc-blue-dim:#2e6b82;
+    --shadow-hard: 0 20px 50px rgba(0,0,0,.55);
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:
+      radial-gradient(ellipse at 20% -10%, #23262c 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 110%, #1a1d22 0%, transparent 55%),
+      var(--steel-900);
+    color:var(--chrome-100);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+
+  /* ---------- brushed metal texture overlay ---------- */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image: repeating-linear-gradient(100deg, rgba(255,255,255,.015) 0px, rgba(255,255,255,.015) 1px, transparent 1px, transparent 3px);
+    pointer-events:none;
+    z-index:1;
+  }
+
+  a{color:inherit; text-decoration:none;}
+
+  /* ---------- nav ---------- */
+  header{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 6vw;
+    background:linear-gradient(180deg, rgba(20,22,26,.92), rgba(20,22,26,.75));
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(255,255,255,.06);
+  }
+  .logo{
+    font-family:'Oswald', sans-serif;
+    font-weight:700;
+    font-size:20px;
+    letter-spacing:2px;
+    background:linear-gradient(180deg, #fff 0%, #b9bec6 45%, #7d828a 50%, #e7eaed 60%, #fff 100%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  nav ul{list-style:none; display:flex; gap:34px;}
+  nav a{
+    font-size:13px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--chrome-300); font-weight:500;
+    transition:color .25s ease;
+    position:relative;
+  }
+  nav a:hover{color:var(--chrome-white);}
+  nav a::after{
+    content:""; position:absolute; left:0; bottom:-6px; width:0; height:1px;
+    background:var(--arc-blue); transition:width .25s ease;
+  }
+  nav a:hover::after{width:100%;}
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative;
+    min-height:92vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center;
+    padding:0 6vw;
+    z-index:2;
+  }
+  .hero-eyebrow{
+    font-size:12px; letter-spacing:4px; text-transform:uppercase;
+    color:var(--arc-blue); font-weight:600; margin-bottom:26px;
+    opacity:0; animation:riseIn .8s ease forwards .1s;
+  }
+  .hero h1{
+    font-family:'Oswald', sans-serif;
+    font-weight:700;
+    font-size:clamp(56px, 12vw, 148px);
+    line-height:.92;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    position:relative;
+    background:linear-gradient(180deg,
+      #ffffff 0%, #dfe3e7 12%, #9aa0a8 28%, #565a60 44%,
+      #f2f4f6 50%, #c2c7cd 58%, #7d828a 72%, #eceef0 86%, #ffffff 100%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    background-size:100% 220%;
+    animation:chromeSheen 7s ease-in-out infinite, riseIn .9s ease forwards .25s;
+    opacity:0;
+    filter:drop-shadow(0 8px 26px rgba(0,0,0,.6));
+  }
+  .hero h1 span{display:block;}
+  @keyframes chromeSheen{
+    0%,100%{background-position:0% 0%;}
+    50%{background-position:0% 100%;}
+  }
+  @keyframes riseIn{
+    from{opacity:0; transform:translateY(22px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  .hero p.tag{
+    margin-top:26px;
+    max-width:560px;
+    font-size:16px; line-height:1.6;
+    color:var(--chrome-300);
+    opacity:0; animation:riseIn .8s ease forwards .45s;
+  }
+  .hero-cta{
+    margin-top:44px;
+    display:flex; gap:18px; flex-wrap:wrap; justify-content:center;
+    opacity:0; animation:riseIn .8s ease forwards .6s;
+  }
+
+  .btn{
+    display:inline-flex; align-items:center; gap:10px;
+    padding:15px 30px;
+    font-size:13px; letter-spacing:1.5px; text-transform:uppercase; font-weight:600;
+    border-radius:3px;
+    cursor:pointer;
+    border:none;
+    transition:transform .2s ease, box-shadow .2s ease, filter .2s ease;
+  }
+  .btn:hover{transform:translateY(-2px);}
+  .btn-chrome{
+    background:linear-gradient(180deg,#f5f6f7 0%, #c7ccd3 45%, #8a8f97 50%, #dfe3e7 60%, #f5f6f7 100%);
+    color:#15171a;
+    box-shadow:0 14px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.8);
+  }
+  .btn-chrome:hover{box-shadow:0 18px 40px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.9);}
+  .btn-discord{
+    background:linear-gradient(180deg, #6c81ff 0%, #4a5ce0 100%);
+    color:#fff;
+    box-shadow:0 14px 30px rgba(74,92,224,.35), inset 0 1px 0 rgba(255,255,255,.35);
+  }
+  .btn-discord:hover{box-shadow:0 18px 40px rgba(74,92,224,.5), inset 0 1px 0 rgba(255,255,255,.4);}
+  .btn-ghost{
+    background:transparent;
+    color:var(--chrome-100);
+    border:1px solid rgba(255,255,255,.25);
+  }
+  .btn-ghost:hover{border-color:var(--arc-blue); color:var(--arc-blue);}
+
+  .scroll-hint{
+    position:absolute; bottom:34px; left:50%; transform:translateX(-50%);
+    font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--chrome-300);
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    opacity:.7;
+  }
+  .scroll-hint .bar{width:1px; height:36px; background:linear-gradient(180deg, var(--arc-blue), transparent); animation:pulse 1.8s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:.3;} 50%{opacity:1;}}
+
+  /* ---------- section shared ---------- */
+  section{position:relative; z-index:2; padding:110px 6vw;}
+  .section-head{max-width:640px; margin-bottom:56px;}
+  .eyebrow{
+    font-size:12px; letter-spacing:4px; text-transform:uppercase; color:var(--arc-blue);
+    font-weight:600; margin-bottom:16px; display:block;
+  }
+  .section-head h2{
+    font-family:'Oswald', sans-serif; font-weight:600; font-size:clamp(32px,5vw,52px);
+    text-transform:uppercase; letter-spacing:1px;
+    color:var(--chrome-white);
+  }
+  .section-head p{margin-top:16px; color:var(--chrome-300); line-height:1.7; font-size:15px;}
+
+  /* ---------- about / plates ---------- */
+  .plates{
+    display:grid; grid-template-columns:repeat(2,1fr); gap:22px;
+    max-width:760px;
+  }
+  .plate{
+    background:linear-gradient(160deg, var(--steel-700), var(--steel-800));
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:6px;
+    padding:32px 26px;
+    position:relative;
+    overflow:hidden;
+    transition:transform .3s ease, border-color .3s ease;
+  }
+  .plate::before{
+    content:""; position:absolute; top:0; left:-60%; width:40%; height:100%;
+    background:linear-gradient(100deg, transparent, rgba(255,255,255,.06), transparent);
+    transform:skewX(-20deg);
+    transition:left .6s ease;
+  }
+  .plate:hover::before{left:140%;}
+  .plate:hover{transform:translateY(-6px); border-color:rgba(95,209,255,.3);}
+  .plate .num{
+    font-family:'Oswald', sans-serif; font-size:13px; color:var(--arc-blue);
+    letter-spacing:2px; margin-bottom:18px; display:block;
+  }
+  .plate h3{
+    font-family:'Oswald', sans-serif; font-size:20px; text-transform:uppercase;
+    letter-spacing:1px; margin-bottom:12px; color:var(--chrome-white);
+  }
+  .plate p{color:var(--chrome-300); font-size:14px; line-height:1.65;}
+
+  /* ---------- discord band ---------- */
+  .discord-band{
+    background:linear-gradient(135deg, #1c1f3d 0%, #22263f 45%, #171a30 100%);
+    border-radius:10px;
+    padding:64px 6vw;
+    display:flex; align-items:center; justify-content:space-between; gap:40px;
+    flex-wrap:wrap;
+    border:1px solid rgba(108,129,255,.25);
+    box-shadow:0 30px 60px rgba(20,20,40,.5);
+  }
+  .discord-band h2{
+    font-family:'Oswald', sans-serif; font-size:clamp(28px,4vw,44px); text-transform:uppercase;
+    color:#fff; max-width:480px; line-height:1.15;
+  }
+  .discord-band p{color:#b7bcf0; margin-top:14px; max-width:420px; font-size:14px; line-height:1.6;}
+
+  /* ---------- static gallery ---------- */
+  .static-gallery{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(220px,1fr));
+    gap:18px;
+  }
+  .static-gallery .photo-card{
+    position:relative;
+    border-radius:6px;
+    overflow:hidden;
+    aspect-ratio:1/1;
+    background:var(--steel-700);
+    border:1px solid rgba(255,255,255,.08);
+    box-shadow:0 10px 24px rgba(0,0,0,.35);
+  }
+  .static-gallery .photo-card img{width:100%; height:100%; object-fit:cover; display:block;}
+  .empty-state{
+    grid-column:1/-1;
+    text-align:center;
+    padding:60px 20px;
+    color:var(--chrome-300);
+    border:1px dashed rgba(255,255,255,.12);
+    border-radius:8px;
+    font-size:14px;
+  }
+
+  .sync-status{
+    font-size:11px; letter-spacing:.5px; color:var(--chrome-300);
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .sync-status::before{
+    content:""; width:6px; height:6px; border-radius:50%; background:#888; flex-shrink:0;
+  }
+  .sync-status.live::before{background:#5fffa0; box-shadow:0 0 8px #5fffa0;}
+  .sync-status.offline::before{background:#ff8080;}
+
+  /* ---------- team ---------- */
+  .section-head em{
+    color:var(--chrome-100); font-style:normal; font-weight:600;
+    border-bottom:1px dashed rgba(255,255,255,.25);
+  }
+  .team-role{margin-bottom:44px;}
+  .team-role:last-child{margin-bottom:0;}
+  .role-title{
+    font-family:'Oswald', sans-serif; font-size:14px; letter-spacing:2px; text-transform:uppercase;
+    color:var(--arc-blue); margin-bottom:18px;
+    display:flex; align-items:center; gap:14px;
+  }
+  .role-title::after{
+    content:""; flex:1; height:1px;
+    background:linear-gradient(90deg, rgba(95,209,255,.35), transparent);
+  }
+  .team-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:16px;
+  }
+  .team-card{
+    display:flex; align-items:center; gap:14px;
+    background:linear-gradient(160deg, var(--steel-700), var(--steel-800));
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:6px;
+    padding:16px 18px;
+    transition:transform .25s ease, border-color .25s ease;
+  }
+  .team-card:hover{transform:translateY(-3px); border-color:rgba(95,209,255,.3);}
+  .team-card .avatar{
+    flex-shrink:0;
+    width:42px; height:42px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Oswald', sans-serif; font-size:13px; font-weight:600; letter-spacing:.5px;
+    background:linear-gradient(180deg,#f5f6f7 0%, #c7ccd3 45%, #8a8f97 50%, #dfe3e7 60%, #f5f6f7 100%);
+    color:#15171a;
+  }
+  .team-card .pseudo{
+    display:block; font-size:14px; font-weight:600; color:var(--chrome-white);
+  }
+  .team-card .role{
+    display:block; font-size:11px; letter-spacing:.5px; color:var(--chrome-300); margin-top:2px;
+  }
+  .team-card{flex-direction:column; align-items:flex-start; text-align:left;}
+  .team-card .pseudo, .team-card .role{margin-top:0;}
+  .team-card .avatar{margin-bottom:4px;}
+
+  /* ---------- footer ---------- */
+  footer{
+    padding:50px 6vw 40px;
+    border-top:1px solid rgba(255,255,255,.06);
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;
+    color:var(--chrome-300); font-size:12px; letter-spacing:.5px;
+    position:relative; z-index:2;
+  }
+
+  @media (max-width:760px){
+    header{padding:16px 5vw;}
+    nav ul{gap:18px;}
+    nav a{font-size:11px;}
+    .plates{grid-template-columns:1fr;}
+    .discord-band{flex-direction:column; text-align:center; align-items:center;}
+  }
+
+
+  ::selection{background:var(--arc-blue); color:#0e0f12;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">J.B.C&nbsp;CROME</div>
+  <nav>
+    <ul>
+      <li><a href="#apropos">Le Groupe</a></li>
+      <li><a href="#equipe">Équipe</a></li>
+      <li><a href="#discord">Discord</a></li>
+      <li><a href="#galerie">Galerie</a></li>
+    </ul>
+  </nav>
+</header>
+
+<section class="hero">
+  <span class="hero-eyebrow">Virtual Trucking Company — Euro Truck Simulator 2</span>
+  <h1><span>J.B.C</span><span>CROME</span></h1>
+  <p class="tag">Une société de transport virtuelle sur Euro Truck Simulator 2 / TruckersMP. Rejoins le convoi, roule avec nous, laisse une finition chromée sur la route.</p>
+  <div class="hero-cta">
+    <a href="#discord" class="btn btn-discord">Rejoindre le Discord</a>
+  </div>
+  <div class="scroll-hint"><span>Défiler</span><span class="bar"></span></div>
+</section>
+
+<section id="apropos">
+  <div class="section-head">
+    <span class="eyebrow">Identité</span>
+    <h2>C'est quoi J.B.C Crome&nbsp;?</h2>
+    <p>J.B.C Crome est une société de transport virtuelle (VTC) sur Euro Truck Simulator 2 et TruckersMP. On roule ensemble, on organise des convois, et on partage la même passion de la route — avec une finition chromée.</p>
+  </div>
+  <div class="plates">
+    <div class="plate">
+      <span class="num">01</span>
+      <h3>Le Discord</h3>
+      <p>Le QG de la société. Convois, annonces, recrutement et vocaux — tout se passe ici en premier.</p>
+    </div>
+    <div class="plate">
+      <span class="num">02</span>
+      <h3>L'esprit</h3>
+      <p>Pas de hiérarchie lourde, pas de chichis. Juste des routiers virtuels qui aiment rouler ensemble, brillants comme du chrome fraîchement poli.</p>
+    </div>
+  </div>
+</section>
+
+<section id="equipe">
+  <div class="section-head">
+    <span class="eyebrow">L'organisation</span>
+    <h2>L'équipe</h2>
+    <p>Les membres qui font rouler J.B.C Crome — synchronisé automatiquement avec les rôles du Discord. <span id="sync-status" class="sync-status">Synchronisation…</span></p>
+  </div>
+
+  <div class="team-role">
+    <h3 class="role-title">Patron</h3>
+    <div class="team-grid" id="role-patron">
+      <div class="team-card">
+        <span class="avatar">JE</span>
+        <span class="pseudo">Jerem0982</span>
+        <span class="role">Patron</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="team-role">
+    <h3 class="role-title">Gérants</h3>
+    <div class="team-grid" id="role-gerants">
+      <div class="team-card">
+        <span class="avatar">BO</span>
+        <span class="pseudo">bobi79</span>
+        <span class="role">Gérant</span>
+      </div>
+      <div class="team-card">
+        <span class="avatar">RA</span>
+        <span class="pseudo">RastaTranKill</span>
+        <span class="role">Gérant</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="team-role">
+    <h3 class="role-title">Responsable Discord</h3>
+    <div class="team-grid" id="role-discord">
+      <div class="team-card">
+        <span class="avatar">BR</span>
+        <span class="pseudo">Bratony</span>
+        <span class="role">Responsable Discord</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="team-role">
+    <h3 class="role-title">Chauffeurs</h3>
+    <div class="team-grid" id="role-chauffeurs">
+      <div class="team-card">
+        <span class="avatar">BO</span>
+        <span class="pseudo">bobi79</span>
+        <span class="role">Chauffeur</span>
+      </div>
+      <div class="team-card">
+        <span class="avatar">BR</span>
+        <span class="pseudo">Brique_decompote</span>
+        <span class="role">Chauffeur</span>
+      </div>
+      <div class="team-card">
+        <span class="avatar">BR</span>
+        <span class="pseudo">bruno</span>
+        <span class="role">Chauffeur</span>
+      </div>
+      <div class="team-card">
+        <span class="avatar">DE</span>
+        <span class="pseudo">Denis</span>
+        <span class="role">Chauffeur</span>
+      </div>
+      <div class="team-card">
+        <span class="avatar">FA</span>
+        <span class="pseudo">fastory 3</span>
+        <span class="role">Chauffeur</span>
+      </div>
+      <div class="team-card">
+        <span class="avatar">GO</span>
+        <span class="pseudo">gozy2025</span>
+        <span class="role">Chauffeur</span>
+      </div>
+      <div class="team-card">
+        <span class="avatar">KI</span>
+        <span class="pseudo">kik59</span>
+        <span class="role">Chauffeur</span>
+      </div>
+      <div class="team-card">
+        <span class="avatar">KY</span>
+        <span class="pseudo">Kylian972</span>
+        <span class="role">Chauffeur</span>
+      </div>
+      <div class="team-card">
+        <span class="avatar">RA</span>
+        <span class="pseudo">Ratah</span>
+        <span class="role">Chauffeur</span>
+      </div>
+      <div class="team-card">
+        <span class="avatar">SO</span>
+        <span class="pseudo">Soyeon</span>
+        <span class="role">Chauffeur</span>
+      </div>
+      <div class="team-card">
+        <span class="avatar">ST</span>
+        <span class="pseudo">Stuky</span>
+        <span class="role">Chauffeur</span>
+      </div>
+      <div class="team-card">
+        <span class="avatar">ZE</span>
+        <span class="pseudo">zeox62</span>
+        <span class="role">Chauffeur</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="discord">
+  <div class="discord-band">
+    <div>
+      <h2>Rejoins le convoi</h2>
+      <p>Clique pour accéder au Discord de la société J.B.C Crome et retrouver les autres routiers. Pense à mettre le vrai lien d'invitation à la place du lien d'exemple.</p>
+    </div>
+    <a href="https://discord.gg/VOTRE-CODE" target="_blank" rel="noopener" class="btn btn-chrome" style="font-size:15px; padding:18px 38px;">
+      Rejoindre → discord.gg/VOTRE-CODE
+    </a>
+  </div>
+</section>
+
+<section id="galerie">
+  <div class="section-head">
+    <span class="eyebrow">Souvenirs de la route</span>
+    <h2>La galerie</h2>
+    <p>Une sélection de photos de convois et de la flotte J.B.C Crome — envoie-moi tes photos et je les intègre ici.</p>
+  </div>
+
+  <div id="gallery-grid" class="static-gallery">
+    <div class="empty-state">Aucune photo pour le moment. Envoie tes clichés de convoi et je les ajouterai ici.</div>
+  </div>
+</section>
+
+<footer>
+  <span>J.B.C Crome — société de transport virtuelle ETS2 / TruckersMP</span>
+  <span>Fait avec un peu de graisse et beaucoup de chrome ✨</span>
+</footer>
+
+<script>
+(function(){
+  // Remplace par l'URL publique de ton endpoint team-api.js (voir fichier fourni à part)
+  const TEAM_API_URL = 'http://node2.dishost.fr:26079/api/team';
+  const REFRESH_MS = 5 * 60 * 1000; // re-sync toutes les 5 minutes
+
+  const ROLE_LABELS = {
+    patron: 'Patron',
+    gerants: 'Gérant',
+    discord: 'Responsable Discord',
+    chauffeurs: 'Chauffeur',
+  };
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, c => ({
+      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+    }[c]));
+  }
+
+  function initials(name){
+    const clean = String(name).replace(/[^a-zA-Z0-9]/g,'');
+    return (clean.slice(0,2) || '??').toUpperCase();
+  }
+
+  function cardsHTML(list, roleLabel){
+    if(!list || list.length === 0){
+      return '<div class="empty-state">Aucun membre pour ce rôle actuellement.</div>';
+    }
+    return list.map(m => `
+      <div class="team-card">
+        <span class="avatar">${initials(m.pseudo)}</span>
+        <span class="pseudo">${escapeHtml(m.pseudo)}</span>
+        <span class="role">${roleLabel}</span>
+      </div>`).join('');
+  }
+
+  function setStatus(state, text){
+    const el = document.getElementById('sync-status');
+    if(!el) return;
+    el.className = 'sync-status ' + state;
+    el.textContent = text;
+  }
+
+  async function syncTeam(){
+    try{
+      const res = await fetch(TEAM_API_URL, { cache: 'no-store' });
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+
+      Object.keys(ROLE_LABELS).forEach(key => {
+        const grid = document.getElementById('role-' + key);
+        if(grid) grid.innerHTML = cardsHTML(data[key], ROLE_LABELS[key]);
+      });
+
+      const now = new Date();
+      setStatus('live', 'Synchronisé avec Discord — ' + now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}));
+    }catch(err){
+      console.warn('[team-sync] API indisponible, affichage de secours conservé.', err);
+      setStatus('offline', 'dernière liste connue affichée');
+    }
+  }
+
+  syncTeam();
+  setInterval(syncTeam, REFRESH_MS);
+})();
+</script>
+
+</body>
+</html>
