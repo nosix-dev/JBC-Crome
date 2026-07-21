@@ -573,7 +573,6 @@
   <div class="section-head">
     <span class="eyebrow">Souvenirs de la route</span>
     <h2>La galerie</h2>
-    <p>Une sélection de photos de convois et de la flotte J.B.C Crome — envoie-moi tes photos et je les intègre ici.</p>
   </div>
 
   <div id="gallery-grid" class="static-gallery">
@@ -660,6 +659,16 @@
   syncTeam();
   setInterval(syncTeam, REFRESH_MS);
 })();
+
+// ── Force le retour en haut de page au chargement, même si l'URL
+// contient un #ancre (ex: #galerie) laissé par une navigation précédente ──
+if('scrollRestoration' in history){
+  history.scrollRestoration = 'manual';
+}
+window.scrollTo(0, 0);
+window.addEventListener('load', function(){
+  window.scrollTo(0, 0);
+});
 
 // ── Masque l'écran de chargement une fois la page prête ──
 (function(){
