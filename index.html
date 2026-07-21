@@ -174,7 +174,7 @@
   .scroll-hint .bar{width:1px; height:36px; background:linear-gradient(180deg, var(--arc-blue), transparent); animation:pulse 1.8s ease-in-out infinite;}
   @keyframes pulse{0%,100%{opacity:.3;} 50%{opacity:1;}}
 
-  section{position:relative; z-index:2; padding:110px 6vw;}
+  section{position:relative; z-index:2; padding:110px 6vw; scroll-margin-top:90px;}
   .section-head{max-width:640px; margin-bottom:56px;}
   .eyebrow{
     font-size:12px; letter-spacing:4px; text-transform:uppercase; color:var(--arc-blue);
@@ -314,6 +314,59 @@
   .team-card .pseudo, .team-card .role{margin-top:0;}
   .team-card .avatar{margin-bottom:4px;}
 
+  .events-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(280px,1fr));
+    gap:22px;
+  }
+  .event-card{
+    background:linear-gradient(160deg, var(--steel-700), var(--steel-800));
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:8px;
+    overflow:hidden;
+    transition:transform .3s ease, border-color .3s ease;
+  }
+  .event-card:hover{transform:translateY(-6px); border-color:rgba(95,209,255,.3);}
+  .event-card .event-img{
+    width:100%;
+    aspect-ratio:16/9;
+    object-fit:cover;
+    display:block;
+    background:var(--steel-700);
+  }
+  .event-card .event-body{
+    padding:22px 22px 26px;
+  }
+  .event-card .event-date{
+    font-family:'Oswald', sans-serif;
+    font-size:12px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--arc-blue);
+    margin-bottom:10px;
+    display:block;
+  }
+  .event-card h3{
+    font-family:'Oswald', sans-serif;
+    font-size:19px;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    color:var(--chrome-white);
+    margin-bottom:10px;
+  }
+  .event-card p{
+    color:var(--chrome-300);
+    font-size:14px;
+    line-height:1.6;
+    margin-bottom:20px;
+  }
+  .event-card .btn{
+    width:100%;
+    justify-content:center;
+    padding:12px 20px;
+    font-size:12px;
+  }
+
   footer{
     padding:50px 6vw 40px;
     border-top:1px solid rgba(255,255,255,.06);
@@ -429,6 +482,7 @@
     <ul>
       <li><a href="#apropos">Le Groupe</a></li>
       <li><a href="#equipe">Équipe</a></li>
+      <li><a href="#evenements">Événements</a></li>
       <li><a href="#discord">Discord</a></li>
       <li><a href="#galerie">Galerie</a></li>
     </ul>
@@ -533,6 +587,36 @@
     <h3 class="role-title">Chauffeurs Test</h3>
     <div class="team-grid" id="role-chauffeurs_essai">
       <div class="empty-state">Aucun membre pour ce rôle actuellement.</div>
+    </div>
+  </div>
+</section>
+
+<section id="evenements">
+  <div class="section-head">
+    <span class="eyebrow">Sur la route</span>
+    <h2>Événements</h2>
+    <p>Les prochains convois et événements organisés par J.B.C Crome. Rejoins-nous sur le Discord pour t'inscrire.</p>
+  </div>
+
+  <div class="events-grid">
+    <div class="event-card">
+      <img class="event-img" src="events/convoi-01.jpg" alt="Convoi hebdomadaire">
+      <div class="event-body">
+        <span class="event-date">Samedi 26 juillet — 20h00</span>
+        <h3>Convoi hebdomadaire</h3>
+        <p>Départ depuis Calais, direction Duisbourg. Ouvert à tous les membres, escorte assurée.</p>
+        <a href="https://discord.gg/4vHDSQBEhw" target="_blank" rel="noopener" class="btn btn-discord">S'inscrire sur Discord</a>
+      </div>
+    </div>
+
+    <div class="event-card">
+      <img class="event-img" src="events/convoi-02.jpg" alt="Convoi spécial">
+      <div class="event-body">
+        <span class="event-date">Samedi 2 août — 21h00</span>
+        <h3>Convoi spécial 100 membres</h3>
+        <p>Un convoi exceptionnel pour fêter les 100 membres de la société. Trajet surprise annoncé sur Discord.</p>
+        <a href="https://discord.gg/4vHDSQBEhw" target="_blank" rel="noopener" class="btn btn-discord">S'inscrire sur Discord</a>
+      </div>
     </div>
   </div>
 </section>
