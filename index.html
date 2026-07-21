@@ -717,10 +717,9 @@
     }[c]));
   }
 
-  function eventCardHTML(ev){
+function eventCardHTML(ev){
     return `
       <div class="event-card">
-        <img class="event-img" src="${escapeHtml(ev.image)}" alt="${escapeHtml(ev.title)}">
         <div class="event-body">
           <span class="event-date">${escapeHtml(ev.date)}</span>
           <h3>${escapeHtml(ev.title)}</h3>
