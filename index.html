@@ -383,6 +383,20 @@
     100%{ transform:translateX(280%); }
   }
 </style>
+<script>
+  // ── Correctif : force le retour tout en haut de la page, TOUJOURS ──
+  // Doit s'exécuter le plus tôt possible, avant même que le navigateur
+  // ne tente de sauter vers une éventuelle ancre (#...) dans l'URL.
+  (function(){
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    // Supprime l'ancre de l'URL pour empêcher tout saut automatique du navigateur
+    if (window.location.hash) {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  })();
+</script>
 </head>
 <body>
 
@@ -661,17 +675,24 @@
   setInterval(syncTeam, REFRESH_MS);
 })();
 
-// ── Force le retour en haut de page au chargement, même si l'URL
-// contient un #ancre (ex: #galerie) laissé par une navigation précédente ──
-if('scrollRestoration' in history){
-  history.scrollRestoration = 'manual';
-}
-window.scrollTo(0, 0);
-window.addEventListener('load', function(){
-  window.scrollTo(0, 0);
-});
+// ── Force le retour en haut de page, à tous les moments critiques du
+// cycle de vie de la page (y compris retour via le cache du navigateur) ──
+(function(){
+  function forceScrollTop(){
+    window.scrollTo(0, 0);
+  }
 
-// ── Masque l'écran de chargement une fois la page prête ──
+  forceScrollTop();
+  document.addEventListener('DOMContentLoaded', forceScrollTop);
+  window.addEventListener('load', forceScrollTop);
+  window.addEventListener('pageshow', forceScrollTop); // gère le bfcache (retour arrière du navigateur)
+  setTimeout(forceScrollTop, 0);
+  setTimeout(forceScrollTop, 350);
+})();
+</script>
+
+<!-- ── Masque l'écran de chargement une fois la page prête ── -->
+<script>
 (function(){
   const preloader = document.getElementById('preloader');
   if(!preloader) return;
@@ -690,8 +711,10 @@ window.addEventListener('load', function(){
   // on masque quand même après 4s max pour ne pas bloquer le visiteur.
   setTimeout(cacherPreloader, 4000);
 })();
+</script>
 
-// ── Fond animé : particules chromées ──
+<!-- ── Fond animé : particules chromées ── -->
+<script>
 (function(){
   const canvas = document.getElementById('particles');
   if(!canvas) return;
