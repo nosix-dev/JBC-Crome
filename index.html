@@ -365,23 +365,36 @@
     animation:preloaderSpin .9s linear infinite;
   }
   .preloader-bar{
-    width:140px; height:2px;
+    width:220px; height:3px;
     background:rgba(255,255,255,.08);
-    border-radius:2px;
+    border-radius:3px;
     overflow:hidden;
+    position:relative;
   }
-  .preloader-bar::after{
-    content:"";
-    display:block;
-    width:40%; height:100%;
-    background:linear-gradient(90deg, transparent, var(--arc-blue), transparent);
-    animation:preloaderBar 1.3s ease-in-out infinite;
+  .preloader-bar-fill{
+    height:100%;
+    width:0%;
+    border-radius:3px;
+    background:linear-gradient(90deg, var(--arc-blue-dim), var(--arc-blue));
+    box-shadow:0 0 12px rgba(95,209,255,.6);
+    transition:width .25s ease-out;
+  }
+  .preloader-percent{
+    font-family:'Oswald', sans-serif;
+    font-size:13px;
+    letter-spacing:2px;
+    color:var(--chrome-300);
+    font-variant-numeric:tabular-nums;
+    min-width:42px;
+    text-align:center;
+  }
+  .preloader-status{
+    font-size:10px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:rgba(238,240,242,.35);
   }
   @keyframes preloaderSpin{ to{ transform:rotate(360deg); } }
-  @keyframes preloaderBar{
-    0%{ transform:translateX(-120%); }
-    100%{ transform:translateX(280%); }
-  }
 </style>
 <script>
   // ── Correctif : force le retour tout en haut de la page, TOUJOURS ──
@@ -403,7 +416,9 @@
 <div id="preloader">
   <div class="preloader-ring"></div>
   <div class="preloader-logo">J.B.C&nbsp;CROME</div>
-  <div class="preloader-bar"></div>
+  <div class="preloader-bar"><div class="preloader-bar-fill" id="preloader-fill"></div></div>
+  <div class="preloader-percent" id="preloader-percent">0%</div>
+  <div class="preloader-status" id="preloader-status">Chargement du site…</div>
 </div>
 
 <canvas id="particles"></canvas>
@@ -691,25 +706,71 @@
 })();
 </script>
 
-<!-- ── Masque l'écran de chargement une fois la page prête ── -->
+<!-- ── Système de chargement : progression réelle + pourcentage ── -->
 <script>
 (function(){
   const preloader = document.getElementById('preloader');
-  if(!preloader) return;
+  const fill = document.getElementById('preloader-fill');
+  const percentLabel = document.getElementById('preloader-percent');
+  const statusLabel = document.getElementById('preloader-status');
+  if(!preloader || !fill || !percentLabel) return;
+
+  const DUREE_MIN_MS = 3200; // durée minimale d'affichage, pour un effet lisible
+  const DUREE_MAX_MS = 6000; // filet de sécurité si une ressource traîne (police lente, etc.)
+
+  const debut = performance.now();
+  let pageEstPrete = (document.readyState === 'complete');
+  let masque = false;
+
+  const messages = [
+    'Chargement du site…',
+    'Préparation de la flotte…',
+    'Polissage du chrome…',
+    'Presque prêt…'
+  ];
+
+  window.addEventListener('load', function(){ pageEstPrete = true; });
+
+  function definirProgression(pct){
+    pct = Math.max(0, Math.min(100, pct));
+    fill.style.width = pct + '%';
+    percentLabel.textContent = Math.round(pct) + '%';
+    if(statusLabel){
+      const idx = Math.min(messages.length - 1, Math.floor((pct / 100) * messages.length));
+      statusLabel.textContent = messages[idx];
+    }
+  }
 
   function cacherPreloader(){
-    preloader.classList.add('hidden');
+    if(masque) return;
+    masque = true;
+    definirProgression(100);
+    setTimeout(function(){
+      preloader.classList.add('hidden');
+    }, 200);
   }
 
-  if(document.readyState === 'complete'){
-    cacherPreloader();
-  } else {
-    window.addEventListener('load', cacherPreloader);
+  function boucle(){
+    const ecoule = performance.now() - debut;
+
+    // Progression simulée qui ralentit en approchant 90%, pour donner
+    // une sensation de chargement réel plutôt qu'une barre linéaire figée.
+    const ratioTemps = Math.min(1, ecoule / DUREE_MIN_MS);
+    const progressionSimulee = 90 * (1 - Math.pow(1 - ratioTemps, 2));
+    definirProgression(progressionSimulee);
+
+    const dureeMinAtteinte = ecoule >= DUREE_MIN_MS;
+    const dureeMaxAtteinte = ecoule >= DUREE_MAX_MS;
+
+    if((pageEstPrete && dureeMinAtteinte) || dureeMaxAtteinte){
+      cacherPreloader();
+      return;
+    }
+
+    requestAnimationFrame(boucle);
   }
 
-  // Filet de sécurité : si une ressource traîne (police lente, etc.),
-  // on masque quand même après 4s max pour ne pas bloquer le visiteur.
-  setTimeout(cacherPreloader, 4000);
+  requestAnimationFrame(boucle);
 })();
 </script>
 
