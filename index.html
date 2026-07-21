@@ -598,26 +598,8 @@
     <p>Les prochains convois et événements organisés par J.B.C Crome. Rejoins-nous sur le Discord pour t'inscrire.</p>
   </div>
 
-  <div class="events-grid">
-    <div class="event-card">
-      <img class="event-img" src="events/convoi-01.jpg" alt="Convoi hebdomadaire">
-      <div class="event-body">
-        <span class="event-date">Samedi 26 juillet — 20h00</span>
-        <h3>Convoi hebdomadaire</h3>
-        <p>Départ depuis Calais, direction Duisbourg. Ouvert à tous les membres, escorte assurée.</p>
-        <a href="https://discord.gg/4vHDSQBEhw" target="_blank" rel="noopener" class="btn btn-discord">S'inscrire sur Discord</a>
-      </div>
-    </div>
-
-    <div class="event-card">
-      <img class="event-img" src="events/convoi-02.jpg" alt="Convoi spécial">
-      <div class="event-body">
-        <span class="event-date">Samedi 2 août — 21h00</span>
-        <h3>Convoi spécial 100 membres</h3>
-        <p>Un convoi exceptionnel pour fêter les 100 membres de la société. Trajet surprise annoncé sur Discord.</p>
-        <a href="https://discord.gg/4vHDSQBEhw" target="_blank" rel="noopener" class="btn btn-discord">S'inscrire sur Discord</a>
-      </div>
-    </div>
+  <div class="events-grid" id="events-grid">
+    <div class="empty-state">Chargement des événements…</div>
   </div>
 </section>
 
@@ -721,7 +703,56 @@
   syncTeam();
   setInterval(syncTeam, REFRESH_MS);
 })();
+</script>
 
+<script>
+(function(){
+  const EVENTS_URL = 'events.json';
+  const grid = document.getElementById('events-grid');
+  if(!grid) return;
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, c => ({
+      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+    }[c]));
+  }
+
+  function eventCardHTML(ev){
+    return `
+      <div class="event-card">
+        <img class="event-img" src="${escapeHtml(ev.image)}" alt="${escapeHtml(ev.title)}">
+        <div class="event-body">
+          <span class="event-date">${escapeHtml(ev.date)}</span>
+          <h3>${escapeHtml(ev.title)}</h3>
+          <p>${escapeHtml(ev.description)}</p>
+          <a href="${escapeHtml(ev.link)}" target="_blank" rel="noopener" class="btn btn-discord">S'inscrire sur Discord</a>
+        </div>
+      </div>`;
+  }
+
+  async function loadEvents(){
+    try{
+      const res = await fetch(EVENTS_URL, { cache: 'no-store' });
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const events = await res.json();
+
+      if(!Array.isArray(events) || events.length === 0){
+        grid.innerHTML = '<div class="empty-state">Aucun événement prévu pour le moment.</div>';
+        return;
+      }
+
+      grid.innerHTML = events.map(eventCardHTML).join('');
+    }catch(err){
+      console.warn('[events] Échec chargement events.json', err);
+      grid.innerHTML = '<div class="empty-state">Impossible de charger les événements.</div>';
+    }
+  }
+
+  loadEvents();
+})();
+</script>
+
+<script>
 (function(){
   function forceScrollTop(){
     window.scrollTo(0, 0);
