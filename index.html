@@ -573,9 +573,8 @@
 
   async function syncTeam(){
     try{
-      const res = await fetch(TEAM_API_URL, {
-        cache: 'no-store',
-        headers: { 'ngrok-skip-browser-warning': 'true' }
+      const res = await fetch(TEAM_API_URL + '?ngrok-skip-browser-warning=true', {
+        cache: 'no-store'
       });
       if(!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
