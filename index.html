@@ -69,12 +69,12 @@
     transition:color .25s ease;
     position:relative;
   }
-  nav a:hover{color:var(--chrome-white);}
+  nav a:hover, nav a.active{color:var(--chrome-white);}
   nav a::after{
     content:""; position:absolute; left:0; bottom:-6px; width:0; height:1px;
     background:var(--arc-blue); transition:width .25s ease;
   }
-  nav a:hover::after{width:100%;}
+  nav a:hover::after, nav a.active::after{width:100%;}
 
   .hero{
     position:relative;
@@ -446,16 +446,6 @@
   }
   @keyframes preloaderSpin{ to{ transform:rotate(360deg); } }
 </style>
-<script>
-  (function(){
-    if ('scrollRestoration' in history) {
-      history.scrollRestoration = 'manual';
-    }
-    if (window.location.hash) {
-      history.replaceState(null, '', window.location.pathname + window.location.search);
-    }
-  })();
-</script>
 </head>
 <body>
 
@@ -470,14 +460,15 @@
 <canvas id="particles"></canvas>
 
 <header>
-  <div class="logo">J.B.C&nbsp;CROME</div>
+  <a href="index.html" class="logo">J.B.C&nbsp;CROME</a>
   <nav>
     <ul>
-      <li><a href="#apropos">Le Groupe</a></li>
-      <li><a href="#equipe">Équipe</a></li>
-      <li><a href="#evenements">Événements</a></li>
-      <li><a href="#discord">Discord</a></li>
-      <li><a href="#galerie">Galerie</a></li>
+      <li><a href="index.html" class="active">Accueil</a></li>
+      <li><a href="apropos.html">Le Groupe</a></li>
+      <li><a href="equipe.html">Équipe</a></li>
+      <li><a href="evenements.html">Événements</a></li>
+      <li><a href="discord.html">Discord</a></li>
+      <li><a href="galerie.html">Galerie</a></li>
     </ul>
   </nav>
 </header>
@@ -487,171 +478,15 @@
   <h1><span>J.B.C</span><span>CROME</span></h1>
   <p class="tag">Une société de transport virtuelle sur Euro Truck Simulator 2 / TruckersMP. Rejoins le convoi, roule avec nous, laisse une finition chromée sur la route.</p>
   <div class="hero-cta">
-    <a href="#discord" class="btn btn-discord">Rejoindre le Discord</a>
+    <a href="discord.html" class="btn btn-discord">Rejoindre le Discord</a>
     <a href="https://trucksbook.eu/company/223335" target="_blank" rel="noopener" class="btn btn-truckbook">Voir sur TruckBook</a>
   </div>
-  <div class="scroll-hint"><span>Défiler</span><span class="bar"></span></div>
 </section>
-
-<div id="section-apropos" data-src="apropos.html"></div>
-<div id="section-equipe" data-src="equipe.html"></div>
-
-<section id="evenements">
-  <div class="section-head">
-    <span class="eyebrow">Sur la route</span>
-    <h2>Événements</h2>
-    <p>Les prochains convois et événements organisés par J.B.C Crome. Rejoins-nous sur le Discord pour t'inscrire.</p>
-  </div>
-
-  <div class="events-grid" id="events-grid">
-    <div class="empty-state">Chargement des événements…</div>
-  </div>
-</section>
-
-<div id="section-discord" data-src="discord.html"></div>
-<div id="section-galerie" data-src="galerie.html"></div>
 
 <footer>
   <span>J.B.C Crome — société de transport virtuelle ETS2 / TruckersMP</span>
   <span>Fait avec un peu de graisse et beaucoup de chrome ✨</span>
 </footer>
-
-<script>
-  async function loadSections(){
-    const placeholders = document.querySelectorAll('[data-src]');
-    await Promise.all([...placeholders].map(async el => {
-      try{
-        const res = await fetch(el.dataset.src, { cache: 'no-store' });
-        if(!res.ok) throw new Error('HTTP ' + res.status);
-        el.outerHTML = await res.text();
-      }catch(err){
-        console.warn('[sections] Échec chargement ' + el.dataset.src, err);
-        el.outerHTML = '<section><div class="empty-state">Contenu indisponible.</div></section>';
-      }
-    }));
-    if(typeof syncTeam === 'function'){
-      syncTeam();
-      setInterval(syncTeam, 5 * 60 * 1000);
-    }
-  }
-  loadSections();
-</script>
-
-<script>
-(function(){
-  const TEAM_API_URL = 'https://cooler-ceremony-extension-station.trycloudflare.com/api/team';
-
-  const ROLE_LABELS = {
-    patron: 'Patron',
-    gerants: 'Gérant',
-    discord: 'Responsable Discord',
-    chauffeurs: 'Chauffeur',
-    chauffeurs_essai: 'Chauffeur Test',
-  };
-
-  function escapeHtml(str){
-    return String(str).replace(/[&<>"']/g, c => ({
-      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
-    }[c]));
-  }
-
-  function initials(name){
-    const clean = String(name).replace(/[^a-zA-Z0-9]/g,'');
-    return (clean.slice(0,2) || '??').toUpperCase();
-  }
-
-  function avatarHTML(m){
-    if(m.avatar){
-      return `<img class="avatar" src="${m.avatar}" alt="${escapeHtml(m.pseudo)}" loading="lazy">`;
-    }
-    return `<span class="avatar">${initials(m.pseudo)}</span>`;
-  }
-
-  function cardsHTML(list, roleLabel){
-    if(!list || list.length === 0){
-      return '<div class="empty-state">Aucun membre pour ce rôle actuellement.</div>';
-    }
-    return list.map(m => `
-      <div class="team-card">
-        ${avatarHTML(m)}
-        <span class="pseudo">${escapeHtml(m.pseudo)}</span>
-        <span class="role">${roleLabel}</span>
-      </div>`).join('');
-  }
-
-  function setStatus(state, text){
-    const el = document.getElementById('sync-status');
-    if(!el) return;
-    el.className = 'sync-status ' + state;
-    el.textContent = text;
-  }
-
-  window.syncTeam = async function syncTeam(){
-    try{
-      const res = await fetch(TEAM_API_URL, { cache: 'no-store' });
-      if(!res.ok) throw new Error('HTTP ' + res.status);
-      const data = await res.json();
-
-      Object.keys(ROLE_LABELS).forEach(key => {
-        const grid = document.getElementById('role-' + key);
-        if(grid) grid.innerHTML = cardsHTML(data[key], ROLE_LABELS[key]);
-      });
-
-      const now = new Date();
-      setStatus('live', 'Synchronisé avec Discord — ' + now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}));
-    }catch(err){
-      console.warn('[team-sync] API indisponible, affichage de secours conservé.', err);
-      setStatus('offline', 'Hors ligne — dernière liste connue affichée');
-    }
-  };
-})();
-</script>
-
-<script>
-(function(){
-  const EVENTS_URL = 'events.json';
-  const grid = document.getElementById('events-grid');
-  if(!grid) return;
-
-  function escapeHtml(str){
-    return String(str).replace(/[&<>"']/g, c => ({
-      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
-    }[c]));
-  }
-
-  function eventCardHTML(ev){
-    return `
-      <div class="event-card">
-        <div class="event-body">
-          <span class="event-date">${escapeHtml(ev.date)}</span>
-          <h3>${escapeHtml(ev.title)}</h3>
-          <p>${escapeHtml(ev.description)}</p>
-          <a href="${escapeHtml(ev.link)}" target="_blank" rel="noopener" class="btn btn-discord">S'inscrire sur Discord</a>
-        </div>
-      </div>`;
-  }
-
-  async function loadEvents(){
-    try{
-      const res = await fetch(EVENTS_URL, { cache: 'no-store' });
-      if(!res.ok) throw new Error('HTTP ' + res.status);
-      const events = await res.json();
-
-      if(!Array.isArray(events) || events.length === 0){
-        grid.innerHTML = '<div class="empty-state">Aucun événement prévu pour le moment.</div>';
-        return;
-      }
-
-      grid.innerHTML = events.map(eventCardHTML).join('');
-    }catch(err){
-      console.warn('[events] Échec chargement events.json', err);
-      grid.innerHTML = '<div class="empty-state">Impossible de charger les événements.</div>';
-    }
-  }
-
-  loadEvents();
-})();
-</script>
 
 <script>
 (function(){
@@ -675,8 +510,8 @@
   const statusLabel = document.getElementById('preloader-status');
   if(!preloader || !fill || !percentLabel) return;
 
-  const DUREE_MIN_MS = 3200;
-  const DUREE_MAX_MS = 6000;
+  const DUREE_MIN_MS = 1200;
+  const DUREE_MAX_MS = 3000;
 
   const debut = performance.now();
   let pageEstPrete = (document.readyState === 'complete');
