@@ -293,6 +293,7 @@
   .team-card .avatar{
     flex-shrink:0;
     width:42px; height:42px; border-radius:50%;
+    object-fit:cover;
     display:flex; align-items:center; justify-content:center;
     font-family:'Oswald', sans-serif; font-size:13px; font-weight:600; letter-spacing:.5px;
     background:linear-gradient(180deg,#f5f6f7 0%, #c7ccd3 45%, #8a8f97 50%, #dfe3e7 60%, #f5f6f7 100%);
@@ -544,13 +545,20 @@
     return (clean.slice(0,2) || '??').toUpperCase();
   }
 
+  function avatarHTML(m){
+    if(m.avatar){
+      return `<img class="avatar" src="${m.avatar}" alt="${escapeHtml(m.pseudo)}" loading="lazy">`;
+    }
+    return `<span class="avatar">${initials(m.pseudo)}</span>`;
+  }
+
   function cardsHTML(list, roleLabel){
     if(!list || list.length === 0){
       return '<div class="empty-state">Aucun membre pour ce rôle actuellement.</div>';
     }
     return list.map(m => `
       <div class="team-card">
-        <span class="avatar">${initials(m.pseudo)}</span>
+        ${avatarHTML(m)}
         <span class="pseudo">${escapeHtml(m.pseudo)}</span>
         <span class="role">${roleLabel}</span>
       </div>`).join('');
