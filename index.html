@@ -522,8 +522,8 @@
 
 <script>
 (function(){
-  // Remplace par l'URL publique de ton endpoint team-api.js
-  const TEAM_API_URL = 'https://caviar-gatherer-matriarch.ngrok-free.dev/api/team';
+  // Remplace par l'URL publique de ton endpoint team-api.js (IP ou domaine DisHost + port 26079)
+  const TEAM_API_URL = 'http://REMPLACE_PAR_TON_IP_OU_DOMAINE:26079/api/team';
   const REFRESH_MS = 5 * 60 * 1000; // re-sync toutes les 5 minutes
 
   const ROLE_LABELS = {
@@ -573,7 +573,7 @@
 
   async function syncTeam(){
     try{
-      const res = await fetch(TEAM_API_URL + '?ngrok-skip-browser-warning=true', {
+      const res = await fetch(TEAM_API_URL, {
         cache: 'no-store'
       });
       if(!res.ok) throw new Error('HTTP ' + res.status);
