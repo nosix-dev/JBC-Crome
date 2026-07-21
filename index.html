@@ -326,9 +326,75 @@
   }
 
   ::selection{background:var(--arc-blue); color:#0e0f12;}
+
+  #particles{
+    position:fixed; inset:0;
+    z-index:0;
+    pointer-events:none;
+    width:100%; height:100%;
+  }
+
+  /* ── Écran de chargement ── */
+  #preloader{
+    position:fixed; inset:0; z-index:999;
+    background:var(--steel-900);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:26px;
+    transition:opacity .6s ease, visibility .6s ease;
+  }
+  #preloader.hidden{
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+  }
+  .preloader-logo{
+    font-family:'Oswald', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:4px;
+    background:linear-gradient(180deg, #fff 0%, #b9bec6 45%, #7d828a 50%, #e7eaed 60%, #fff 100%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .preloader-ring{
+    width:52px; height:52px;
+    border-radius:50%;
+    border:2px solid rgba(255,255,255,.08);
+    border-top-color:var(--arc-blue);
+    animation:preloaderSpin .9s linear infinite;
+  }
+  .preloader-bar{
+    width:140px; height:2px;
+    background:rgba(255,255,255,.08);
+    border-radius:2px;
+    overflow:hidden;
+  }
+  .preloader-bar::after{
+    content:"";
+    display:block;
+    width:40%; height:100%;
+    background:linear-gradient(90deg, transparent, var(--arc-blue), transparent);
+    animation:preloaderBar 1.3s ease-in-out infinite;
+  }
+  @keyframes preloaderSpin{ to{ transform:rotate(360deg); } }
+  @keyframes preloaderBar{
+    0%{ transform:translateX(-120%); }
+    100%{ transform:translateX(280%); }
+  }
 </style>
 </head>
 <body>
+
+<div id="preloader">
+  <div class="preloader-ring"></div>
+  <div class="preloader-logo">J.B.C&nbsp;CROME</div>
+  <div class="preloader-bar"></div>
+</div>
+
+<canvas id="particles"></canvas>
+
+
 
 <header>
   <div class="logo">J.B.C&nbsp;CROME</div>
@@ -593,6 +659,99 @@
 
   syncTeam();
   setInterval(syncTeam, REFRESH_MS);
+})();
+
+// ── Masque l'écran de chargement une fois la page prête ──
+(function(){
+  const preloader = document.getElementById('preloader');
+  if(!preloader) return;
+
+  function cacherPreloader(){
+    preloader.classList.add('hidden');
+  }
+
+  if(document.readyState === 'complete'){
+    cacherPreloader();
+  } else {
+    window.addEventListener('load', cacherPreloader);
+  }
+
+  // Filet de sécurité : si une ressource traîne (police lente, etc.),
+  // on masque quand même après 4s max pour ne pas bloquer le visiteur.
+  setTimeout(cacherPreloader, 4000);
+})();
+
+// ── Fond animé : particules chromées ──
+(function(){
+  const canvas = document.getElementById('particles');
+  if(!canvas) return;
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(prefersReducedMotion) return;
+
+  const ctx = canvas.getContext('2d');
+  let width, height, particles;
+
+  const DENSITE = 14000; // px² par particule (plus haut = moins de particules)
+  const VITESSE_MAX = 0.18;
+  const RAYON_LIEN = 140;
+
+  function redimensionner(){
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+    const nb = Math.min(90, Math.round((width * height) / DENSITE));
+    particles = Array.from({ length: nb }, creerParticule);
+  }
+
+  function creerParticule(){
+    return {
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * VITESSE_MAX,
+      vy: (Math.random() - 0.5) * VITESSE_MAX,
+      r: Math.random() * 1.4 + 0.6,
+    };
+  }
+
+  function pas(){
+    ctx.clearRect(0, 0, width, height);
+
+    for(const p of particles){
+      p.x += p.vx;
+      p.y += p.vy;
+
+      if(p.x < 0 || p.x > width) p.vx *= -1;
+      if(p.y < 0 || p.y > height) p.vy *= -1;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(95, 209, 255, 0.55)';
+      ctx.fill();
+    }
+
+    for(let i = 0; i < particles.length; i++){
+      for(let j = i + 1; j < particles.length; j++){
+        const a = particles[i], b = particles[j];
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if(dist < RAYON_LIEN){
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.strokeStyle = `rgba(199, 204, 211, ${0.12 * (1 - dist / RAYON_LIEN)})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+
+    requestAnimationFrame(pas);
+  }
+
+  redimensionner();
+  window.addEventListener('resize', redimensionner);
+  requestAnimationFrame(pas);
 })();
 </script>
 
