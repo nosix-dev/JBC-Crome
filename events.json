@@ -2,16 +2,15 @@
   {
     "date": "Samedi 25 juillet — 20h00",
     "title": "1er Convoi J.B.C Crome",
-    "description": "Départ depuis Calais, direction Duisbourg. Ouvert à tous les membres, escorte assurée.",
+    "description": [
+      "Départ Ville : Calais",
+      "Entreprise : Kaarfor",
+      "Arrivée Ville : TruckersMP HQ",
+      "Entreprise : Cargotras",
+      "GPS : Aucun point GPS",
+      "Distance : 1 261 km (itinéraire le plus rapide)",
+      "Serveur : Simulation 2"
+    ],
     "link": "https://truckersmp.com/events/35995-premier-convoi-de-la-tft"
   },
-  {
-    "date": "Samedi 2 août — 21h00",
-    "title": "Convoi spécial 100 membres",
-    "description": [
-      "Ville : Calais",
-      "Entreprise : Kaarfor"
-    ],
-    "link": "https://truckersmp.com/events/36836-1em-convoi-j-b-c-corme"
-  }
 ]
