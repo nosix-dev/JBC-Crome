@@ -239,6 +239,32 @@
   }
   .discord-band p{color:#b7bcf0; margin-top:14px; max-width:420px; font-size:14px; line-height:1.6;}
 
+  .discord-layout{
+    display:flex;
+    gap:28px;
+    flex-wrap:wrap;
+    align-items:stretch;
+  }
+  .discord-layout .discord-band{
+    flex:1 1 420px;
+  }
+  .discord-widget{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .discord-widget iframe{
+    border-radius:10px;
+    box-shadow:var(--shadow-hard);
+    max-width:100%;
+  }
+  @media (max-width:900px){
+    .discord-layout{flex-direction:column;}
+    .discord-widget{width:100%;}
+    .discord-widget iframe{width:100%;}
+  }
+
   .static-gallery{
     display:grid;
     grid-template-columns:repeat(auto-fill, minmax(220px,1fr));
@@ -395,10 +421,10 @@
   }
 
   footer{
-    padding:50px 6vw 40px;
+    padding:24px 6vw 20px;
     border-top:1px solid rgba(255,255,255,.06);
     display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;
-    color:var(--chrome-300); font-size:12px; letter-spacing:.5px;
+    color:var(--chrome-300); font-size:11px; letter-spacing:.5px;
     position:relative; z-index:2;
   }
 
@@ -408,6 +434,15 @@
     nav a{font-size:11px;}
     .plates{grid-template-columns:1fr;}
     .discord-band{flex-direction:column; text-align:center; align-items:center;}
+  }
+
+  body.push-footer{
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+  }
+  body.push-footer footer{
+    margin-top:auto;
   }
 
   ::selection{background:var(--arc-blue); color:#0e0f12;}
@@ -481,7 +516,7 @@
   @keyframes preloaderSpin{ to{ transform:rotate(360deg); } }
 </style>
 </head>
-<body>
+<body class="push-footer">
 
 <div id="preloader">
   <div class="preloader-ring"></div>
@@ -508,14 +543,19 @@
 </header>
 
 <section id="discord">
-  <div class="discord-band">
-    <div>
-      <h2>Rejoins le convoi</h2>
-      <p>Clique pour accéder au Discord de la société J.B.C Crome et retrouver les autres routiers.</p>
+  <div class="discord-layout">
+    <div class="discord-band">
+      <div>
+        <h2>Rejoins le convoi</h2>
+        <p>Clique pour accéder au Discord de la société J.B.C Crome et retrouver les autres routiers.</p>
+      </div>
+      <a href="https://discord.gg/4vHDSQBEhw" target="_blank" rel="noopener" class="btn btn-chrome" style="font-size:15px; padding:18px 38px;">
+        Rejoindre → discord.gg/4vHDSQBEhw
+      </a>
     </div>
-    <a href="https://discord.gg/4vHDSQBEhw" target="_blank" rel="noopener" class="btn btn-chrome" style="font-size:15px; padding:18px 38px;">
-      Rejoindre → discord.gg/4vHDSQBEhw
-    </a>
+    <div class="discord-widget">
+      <iframe src="https://discord.com/widget?id=1492875979142598716&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+    </div>
   </div>
 </section>
 
