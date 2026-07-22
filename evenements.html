@@ -778,11 +778,26 @@
       </div>`;
   }
 
+  // L'API TruckersMP ne renvoie pas d'en-tête CORS pour les appels navigateur.
+  // On tente d'abord l'appel direct, puis on bascule sur un proxy CORS public en secours.
+  const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+
+  async function fetchJson(url){
+    const res = await fetch(url, { cache: 'no-store' });
+    if(!res.ok) throw new Error('HTTP ' + res.status + ' pour ' + url);
+    return res.json();
+  }
+
   async function fetchEvent(entree){
     const id = extraireId(entree);
-    const res = await fetch(TMP_API + id, { cache: 'no-store' });
-    if(!res.ok) throw new Error('HTTP ' + res.status + ' pour l\'event ' + id);
-    const data = await res.json();
+    const cible = TMP_API + id;
+    let data;
+    try{
+      data = await fetchJson(cible);
+    }catch(erreurDirecte){
+      // Repli via proxy CORS (nécessaire sur GitHub Pages / la plupart des hébergements statiques)
+      data = await fetchJson(CORS_PROXY + encodeURIComponent(cible));
+    }
     if(data.error || !data.response) throw new Error('Réponse invalide pour l\'event ' + id);
     return data.response;
   }
