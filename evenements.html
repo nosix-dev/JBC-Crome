@@ -377,6 +377,22 @@
     content:""; flex:1; height:1px;
     background:linear-gradient(90deg, rgba(95,209,255,.35), transparent);
   }
+  .event-desc-list{
+    list-style:none;
+    color:var(--chrome-300);
+    font-size:14px;
+    line-height:1.7;
+    margin-bottom:20px;
+  }
+  .event-desc-list li{
+    padding-left:16px;
+    position:relative;
+  }
+  .event-desc-list li::before{
+    content:"›";
+    position:absolute; left:0;
+    color:var(--arc-blue);
+  }
 
   footer{
     padding:50px 6vw 40px;
@@ -665,34 +681,21 @@
     }[c]));
   }
 
+  function descriptionHTML(desc){
+    if(Array.isArray(desc)){
+      return '<ul class="event-desc-list">' + desc.map(item => `<li>${escapeHtml(item)}</li>`).join('') + '</ul>';
+    }
+    return `<p>${escapeHtml(desc)}</p>`;
+  }
+
   function eventCardHTML(ev){
     return `
       <div class="event-card">
         <div class="event-body">
           <span class="event-date">${escapeHtml(ev.date)}</span>
           <h3>${escapeHtml(ev.title)}</h3>
-          <p>${escapeHtml(ev.description)}</p>
+          ${descriptionHTML(ev.description)}
           <a href="${escapeHtml(ev.link)}" target="_blank" rel="noopener" class="btn btn-truckersmp">S'inscrire sur TruckersMP</a>
-        </div>
-      </div>`;
-  }
-
-  function groupByCategory(events){
-    const groups = new Map();
-    events.forEach(ev => {
-      const cat = ev.category || 'Autres';
-      if(!groups.has(cat)) groups.set(cat, []);
-      groups.get(cat).push(ev);
-    });
-    return groups;
-  }
-
-  function categoryHTML(cat, list){
-    return `
-      <div class="event-category">
-        <h3 class="event-category-title">${escapeHtml(cat)}</h3>
-        <div class="events-grid">
-          ${list.map(eventCardHTML).join('')}
         </div>
       </div>`;
   }
@@ -708,8 +711,7 @@
         return;
       }
 
-      const groups = groupByCategory(events);
-      grid.innerHTML = [...groups.entries()].map(([cat, list]) => categoryHTML(cat, list)).join('');
+      grid.innerHTML = events.map(eventCardHTML).join('');
     }catch(err){
       console.warn('[events] Échec chargement events.json', err);
       grid.innerHTML = '<div class="empty-state">Impossible de charger les événements.</div>';
