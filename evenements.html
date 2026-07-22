@@ -320,45 +320,67 @@
   .team-card .pseudo, .team-card .role{margin-top:0;}
   .team-card .avatar{margin-bottom:4px;}
 
+  /* ---- Cartes événements (style "Attending Events") ---- */
   .events-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(280px,1fr));
-    gap:22px;
+    grid-template-columns:repeat(auto-fill, minmax(300px,1fr));
+    gap:26px;
   }
   .event-card{
     background:linear-gradient(160deg, var(--steel-700), var(--steel-800));
     border:1px solid rgba(255,255,255,.07);
     border-radius:8px;
     overflow:hidden;
-    transition:transform .3s ease, border-color .3s ease;
+    transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease;
   }
-  .event-card:hover{transform:translateY(-6px); border-color:rgba(95,209,255,.3);}
+  .event-card:hover{
+    transform:translateY(-6px);
+    border-color:rgba(95,209,255,.3);
+    box-shadow:0 20px 40px rgba(0,0,0,.4);
+  }
+  .event-banner{
+    position:relative;
+    width:100%;
+    aspect-ratio:16/8.5;
+    background:var(--steel-800) center / cover no-repeat;
+  }
+  .event-banner::after{
+    content:"";
+    position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(20,22,26,.55) 100%);
+  }
+  .event-banner .event-title-overlay{
+    position:absolute; left:0; right:0; bottom:0;
+    padding:16px 18px;
+    font-family:'Oswald', sans-serif;
+    font-size:17px;
+    font-weight:600;
+    color:#fff;
+    text-shadow:0 2px 10px rgba(0,0,0,.8);
+    z-index:1;
+    line-height:1.25;
+  }
   .event-card .event-body{
-    padding:26px 22px 26px;
+    padding:20px 22px 24px;
   }
-  .event-card .event-date{
-    font-family:'Oswald', sans-serif;
-    font-size:12px;
-    letter-spacing:1.5px;
-    text-transform:uppercase;
-    color:var(--arc-blue);
-    margin-bottom:10px;
-    display:block;
-  }
-  .event-card h3{
-    font-family:'Oswald', sans-serif;
-    font-size:19px;
-    text-transform:uppercase;
-    letter-spacing:.5px;
-    color:var(--chrome-white);
-    margin-bottom:10px;
-  }
-  .event-card p{
-    color:var(--chrome-300);
-    font-size:14px;
-    line-height:1.6;
+  .event-meta{
+    display:flex;
+    flex-direction:column;
+    gap:9px;
     margin-bottom:20px;
   }
+  .event-meta .meta-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:13px;
+    color:var(--chrome-300);
+  }
+  .event-meta .meta-item svg{
+    width:15px; height:15px; flex-shrink:0;
+    color:var(--arc-blue);
+  }
+  .event-meta .meta-item.route{color:var(--chrome-100);}
   .event-card .btn{
     width:100%;
     justify-content:center;
@@ -670,44 +692,127 @@
 </script>
 
 <script>
+/*
+  =========================================================================
+  Chargement des événements depuis TruckersMP.
+  -------------------------------------------------------------------------
+  events.json ne contient plus les infos à la main : juste la liste des
+  événements TruckersMP à afficher, sous forme d'ID ou de lien complet.
+
+  Exemple de events.json :
+  [
+    "33275",
+    "https://truckersmp.com/events/33290-oz-bolu-vtc-july-convoy",
+    "33301"
+  ]
+
+  Le script va chercher automatiquement, pour chaque entrée, le titre, la
+  bannière, la date, le serveur et le trajet directement sur l'API
+  officielle de TruckersMP (api.truckersmp.com), puis construit les
+  cartes façon "Attending Events".
+  =========================================================================
+*/
 (function(){
   const EVENTS_URL = 'events.json';
+  const TMP_API = 'https://api.truckersmp.com/v2/events/';
   const grid = document.getElementById('events-grid');
   if(!grid) return;
 
+  const ICONS = {
+    calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+    server: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="6" rx="1"/><rect x="2" y="15" width="20" height="6" rx="1"/><path d="M6 6h.01M6 18h.01"/></svg>',
+    route: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 7.6C10 10 14 14 15.8 16.4"/></svg>'
+  };
+
   function escapeHtml(str){
-    return String(str).replace(/[&<>"']/g, c => ({
+    return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({
       '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
     }[c]));
   }
 
-  function descriptionHTML(desc){
-    if(Array.isArray(desc)){
-      return '<ul class="event-desc-list">' + desc.map(item => `<li>${escapeHtml(item)}</li>`).join('') + '</ul>';
+  // Extrait l'ID numérique d'une entrée, que ce soit déjà un ID ou une URL truckersmp.com complète
+  function extraireId(entree){
+    if(typeof entree === 'number') return String(entree);
+    const s = String(entree).trim();
+    if(/^\d+$/.test(s)) return s;
+    const m = s.match(/events\/(\d+)/);
+    if(m) return m[1];
+    return s;
+  }
+
+  function formatDate(startAtUTC){
+    try{
+      // TruckersMP renvoie les dates en UTC, ex: "2026-07-24 18:00:00"
+      const iso = startAtUTC.replace(' ', 'T') + 'Z';
+      const d = new Date(iso);
+      return new Intl.DateTimeFormat('fr-FR', {
+        weekday: 'short', day: '2-digit', month: 'short',
+        hour: '2-digit', minute: '2-digit',
+        timeZone: 'Europe/Paris'
+      }).format(d);
+    }catch(e){
+      return startAtUTC;
     }
-    return `<p>${escapeHtml(desc)}</p>`;
   }
 
   function eventCardHTML(ev){
+    const departure = ev.departure ? (ev.departure.city || ev.departure.location || '') : '';
+    const arrive = ev.arrive ? (ev.arrive.city || ev.arrive.location || '') : '';
+    const routeLine = (departure || arrive) ? `${escapeHtml(departure)} → ${escapeHtml(arrive)}` : '';
+    const serverName = ev.server && ev.server.name ? ev.server.name : 'Event Server';
+    const banner = ev.banner || '';
+
     return `
       <div class="event-card">
+        <div class="event-banner" style="background-image:url('${escapeHtml(banner)}')">
+          <div class="event-title-overlay">${escapeHtml(ev.name)}</div>
+        </div>
         <div class="event-body">
-          <span class="event-date">${escapeHtml(ev.date)}</span>
-          <h3>${escapeHtml(ev.title)}</h3>
-          ${descriptionHTML(ev.description)}
-          <a href="${escapeHtml(ev.link)}" target="_blank" rel="noopener" class="btn btn-truckersmp">S'inscrire sur TruckersMP</a>
+          <div class="event-meta">
+            <span class="meta-item">${ICONS.calendar}${escapeHtml(formatDate(ev.start_at))}</span>
+            <span class="meta-item">${ICONS.server}${escapeHtml(serverName)}</span>
+            ${routeLine ? `<span class="meta-item route">${ICONS.route}${routeLine}</span>` : ''}
+          </div>
+          <a href="${escapeHtml(ev.url)}" target="_blank" rel="noopener" class="btn btn-truckersmp">VOIR LES DÉTAILS</a>
         </div>
       </div>`;
+  }
+
+  async function fetchEvent(entree){
+    const id = extraireId(entree);
+    const res = await fetch(TMP_API + id, { cache: 'no-store' });
+    if(!res.ok) throw new Error('HTTP ' + res.status + ' pour l\'event ' + id);
+    const data = await res.json();
+    if(data.error || !data.response) throw new Error('Réponse invalide pour l\'event ' + id);
+    return data.response;
   }
 
   async function loadEvents(){
     try{
       const res = await fetch(EVENTS_URL, { cache: 'no-store' });
       if(!res.ok) throw new Error('HTTP ' + res.status);
-      const events = await res.json();
+      const entrees = await res.json();
 
-      if(!Array.isArray(events) || events.length === 0){
+      if(!Array.isArray(entrees) || entrees.length === 0){
         grid.innerHTML = '<div class="empty-state">Aucun événement prévu pour le moment.</div>';
+        return;
+      }
+
+      const resultats = await Promise.allSettled(entrees.map(fetchEvent));
+      const events = resultats
+        .filter(r => r.status === 'fulfilled')
+        .map(r => r.value)
+        .sort((a, b) => new Date(a.start_at) - new Date(b.start_at));
+
+      const echecs = resultats.filter(r => r.status === 'rejected');
+      if(echecs.length){
+        echecs.forEach(e => console.warn('[events] ', e.reason));
+      }
+
+      if(events.length === 0){
+        grid.innerHTML = '<div class="empty-state">Impossible de charger les événements depuis TruckersMP. '
+          + (echecs.length ? 'Vérifie ta connexion ou réessaie plus tard.' : 'Aucun événement prévu pour le moment.')
+          + '</div>';
         return;
       }
 
