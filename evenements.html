@@ -366,6 +366,18 @@
     font-size:12px;
   }
 
+  .event-category{margin-bottom:48px;}
+  .event-category:last-child{margin-bottom:0;}
+  .event-category-title{
+    font-family:'Oswald', sans-serif; font-size:14px; letter-spacing:2px; text-transform:uppercase;
+    color:var(--arc-blue); margin-bottom:20px;
+    display:flex; align-items:center; gap:14px;
+  }
+  .event-category-title::after{
+    content:""; flex:1; height:1px;
+    background:linear-gradient(90deg, rgba(95,209,255,.35), transparent);
+  }
+
   footer{
     padding:50px 6vw 40px;
     border-top:1px solid rgba(255,255,255,.06);
@@ -665,6 +677,26 @@
       </div>`;
   }
 
+  function groupByCategory(events){
+    const groups = new Map();
+    events.forEach(ev => {
+      const cat = ev.category || 'Autres';
+      if(!groups.has(cat)) groups.set(cat, []);
+      groups.get(cat).push(ev);
+    });
+    return groups;
+  }
+
+  function categoryHTML(cat, list){
+    return `
+      <div class="event-category">
+        <h3 class="event-category-title">${escapeHtml(cat)}</h3>
+        <div class="events-grid">
+          ${list.map(eventCardHTML).join('')}
+        </div>
+      </div>`;
+  }
+
   async function loadEvents(){
     try{
       const res = await fetch(EVENTS_URL, { cache: 'no-store' });
@@ -676,7 +708,8 @@
         return;
       }
 
-      grid.innerHTML = events.map(eventCardHTML).join('');
+      const groups = groupByCategory(events);
+      grid.innerHTML = [...groups.entries()].map(([cat, list]) => categoryHTML(cat, list)).join('');
     }catch(err){
       console.warn('[events] Échec chargement events.json', err);
       grid.innerHTML = '<div class="empty-state">Impossible de charger les événements.</div>';
