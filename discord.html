@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Discord J.B.C Crome</title>
+<title>Discord — J.B.C Crome</title>
 <link rel="icon" type="image/png" href="LogoV3.png">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
@@ -164,6 +164,12 @@
     box-shadow:0 14px 30px rgba(224,138,30,.35), inset 0 1px 0 rgba(255,255,255,.35);
   }
   .btn-truckbook:hover{box-shadow:0 18px 40px rgba(224,138,30,.5), inset 0 1px 0 rgba(255,255,255,.4);}
+  .btn-truckersmp{
+    background:linear-gradient(180deg, #ff9142 0%, #d9691b 100%);
+    color:#1a1000;
+    box-shadow:0 14px 30px rgba(217,105,27,.35), inset 0 1px 0 rgba(255,255,255,.35);
+  }
+  .btn-truckersmp:hover{box-shadow:0 18px 40px rgba(217,105,27,.5), inset 0 1px 0 rgba(255,255,255,.4);}
 
   .scroll-hint{
     position:absolute; bottom:34px; left:50%; transform:translateX(-50%);
@@ -360,6 +366,34 @@
     font-size:12px;
   }
 
+  .event-category{margin-bottom:48px;}
+  .event-category:last-child{margin-bottom:0;}
+  .event-category-title{
+    font-family:'Oswald', sans-serif; font-size:14px; letter-spacing:2px; text-transform:uppercase;
+    color:var(--arc-blue); margin-bottom:20px;
+    display:flex; align-items:center; gap:14px;
+  }
+  .event-category-title::after{
+    content:""; flex:1; height:1px;
+    background:linear-gradient(90deg, rgba(95,209,255,.35), transparent);
+  }
+  .event-desc-list{
+    list-style:none;
+    color:var(--chrome-300);
+    font-size:14px;
+    line-height:1.7;
+    margin-bottom:20px;
+  }
+  .event-desc-list li{
+    padding-left:16px;
+    position:relative;
+  }
+  .event-desc-list li::before{
+    content:"›";
+    position:absolute; left:0;
+    color:var(--arc-blue);
+  }
+
   footer{
     padding:50px 6vw 40px;
     border-top:1px solid rgba(255,255,255,.06);
@@ -464,7 +498,7 @@
   <nav>
     <ul>
       <li><a href="index.html">Accueil</a></li>
-      <li><a href="apropos.html">A propos</a></li>
+      <li><a href="apropos.html">Le Groupe</a></li>
       <li><a href="equipe.html">Équipe</a></li>
       <li><a href="evenements.html">Événements</a></li>
       <li><a href="discord.html" class="active">Discord</a></li>
@@ -504,6 +538,7 @@
 })();
 </script>
 
+
 <script>
 (function(){
   const preloader = document.getElementById('preloader');
@@ -512,8 +547,8 @@
   const statusLabel = document.getElementById('preloader-status');
   if(!preloader || !fill || !percentLabel) return;
 
-  const DUREE_MIN_MS = 1200;
-  const DUREE_MAX_MS = 3000;
+  const DUREE_MIN_MS = 150;
+  const DUREE_MAX_MS = 400;
 
   const debut = performance.now();
   let pageEstPrete = (document.readyState === 'complete');
@@ -544,7 +579,7 @@
     definirProgression(100);
     setTimeout(function(){
       preloader.classList.add('hidden');
-    }, 200);
+    }, 150);
   }
 
   function boucle(){
