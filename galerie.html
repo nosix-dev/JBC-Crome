@@ -17,7 +17,6 @@
     --chrome-white:#ffffff;
     --arc-blue:#5fd1ff;
     --arc-blue-dim:#2e6b82;
-    --shadow-hard: 0 20px 50px rgba(0,0,0,.55);
   }
 
   *{box-sizing:border-box; margin:0; padding:0;}
@@ -102,9 +101,30 @@
     background:var(--steel-700);
     border:1px solid rgba(255,255,255,.08);
     box-shadow:0 10px 24px rgba(0,0,0,.35);
+    cursor:zoom-in;
   }
-  .static-gallery .photo-card img{width:100%; height:100%; object-fit:cover; display:block;}
-  .empty-state{
+  .static-gallery .photo-card img{
+    width:100%; height:100%; object-fit:cover; display:block;
+    transition:transform .35s ease;
+  }
+  .static-gallery .photo-card:hover img{transform:scale(1.06);}
+  .static-gallery .photo-card::after{
+    content:"⤢";
+    position:absolute; top:10px; right:10px;
+    width:28px; height:28px;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(20,22,26,.65);
+    border:1px solid rgba(255,255,255,.15);
+    border-radius:5px;
+    color:var(--chrome-white);
+    font-size:14px;
+    opacity:0;
+    transition:opacity .25s ease;
+    pointer-events:none;
+  }
+  .static-gallery .photo-card:hover::after{opacity:1;}
+
+  .empty-state, .loading-state{
     grid-column:1/-1;
     text-align:center;
     padding:60px 20px;
@@ -122,20 +142,64 @@
     position:relative; z-index:2;
   }
 
+  /* Lightbox */
+  #lightbox{
+    position:fixed; inset:0; z-index:200;
+    background:rgba(10,11,13,.92);
+    backdrop-filter:blur(6px);
+    display:none;
+    align-items:center; justify-content:center;
+    padding:5vh 5vw;
+    opacity:0;
+    transition:opacity .25s ease;
+  }
+  #lightbox.open{display:flex; opacity:1;}
+  #lightbox img{
+    max-width:100%; max-height:90vh;
+    border-radius:8px;
+    box-shadow:0 30px 70px rgba(0,0,0,.6);
+    transform:scale(.96);
+    transition:transform .25s ease;
+  }
+  #lightbox.open img{transform:scale(1);}
+  #lightbox-close{
+    position:absolute; top:26px; right:6vw;
+    width:42px; height:42px;
+    border-radius:50%;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.2);
+    color:var(--chrome-white);
+    font-size:20px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    transition:background .2s ease;
+  }
+  #lightbox-close:hover{background:rgba(255,255,255,.18);}
+  #lightbox-prev, #lightbox-next{
+    position:absolute; top:50%; transform:translateY(-50%);
+    width:48px; height:48px;
+    border-radius:50%;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.2);
+    color:var(--chrome-white);
+    font-size:22px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    transition:background .2s ease;
+  }
+  #lightbox-prev:hover, #lightbox-next:hover{background:rgba(255,255,255,.18);}
+  #lightbox-prev{left:4vw;}
+  #lightbox-next{right:4vw;}
+
   @media (max-width:760px){
     header{padding:16px 5vw;}
     nav ul{gap:18px;}
     nav a{font-size:11px;}
+    #lightbox-prev, #lightbox-next{width:38px; height:38px; font-size:18px;}
   }
 
-  body.push-footer{
-    display:flex;
-    flex-direction:column;
-    min-height:100vh;
-  }
-  body.push-footer footer{
-    margin-top:auto;
-  }
+  body.push-footer{display:flex; flex-direction:column; min-height:100vh;}
+  body.push-footer footer{margin-top:auto;}
 
   ::selection{background:var(--arc-blue); color:#0e0f12;}
 </style>
@@ -160,9 +224,10 @@
   <div class="section-head">
     <span class="eyebrow">Souvenirs de la route</span>
     <h2>La galerie</h2>
-    <p>Une sélection de photos de convois et de la flotte J.B.C Crome — envoie-moi tes photos et je les intègre ici.</p>
+    <p>Une sélection de photos de convois et de la flotte J.B.C Crome — clique sur une photo pour l'agrandir.</p>
   </div>
   <div id="gallery-grid" class="static-gallery">
+    <div class="loading-state">Chargement des photos…</div>
   </div>
 </section>
 
@@ -171,23 +236,112 @@
   <span>Fait avec un peu de graisse et beaucoup de chrome ✨</span>
 </footer>
 
+<!-- Lightbox -->
+<div id="lightbox">
+  <div id="lightbox-close">✕</div>
+  <div id="lightbox-prev">‹</div>
+  <img id="lightbox-img" src="" alt="Photo agrandie">
+  <div id="lightbox-next">›</div>
+</div>
+
 <script>
 (function(){
-  // Liste des photos présentes à la racine du repo GitHub.
-  // Ajoute simplement le nom du fichier ici si tu en uploades d'autres.
-  const photos = ["1.png", "2.png", "3.png", "4.png", "5.png"];
+  // ==== A CONFIGURER ====
+  const GITHUB_USER = "nosix-dev";
+  const GITHUB_REPO = "JBC-Crome";
+  const GITHUB_BRANCH = "main";
+  // Dossier contenant les photos. Mets "" pour la racine du repo.
+  const GITHUB_FOLDER = "galerie";
+  // Fichiers à ignorer si tu utilises la racine (logo, icônes, etc.)
+  const EXCLURE = ["LogoV3.png"];
+  // =======================
 
   const grid = document.getElementById('gallery-grid');
-  if(!grid) return;
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightbox-img');
+  const btnClose = document.getElementById('lightbox-close');
+  const btnPrev = document.getElementById('lightbox-prev');
+  const btnNext = document.getElementById('lightbox-next');
 
-  if(!photos.length){
-    grid.innerHTML = '<div class="empty-state">Aucune photo pour le moment. Envoie tes clichés de convoi et je les ajouterai ici.</div>';
-    return;
+  let photos = [];
+  let currentIndex = 0;
+
+  function afficherErreur(){
+    grid.innerHTML = '<div class="empty-state">Impossible de charger la galerie pour le moment. Réessaie plus tard.</div>';
   }
 
-  grid.innerHTML = photos.map(function(src){
-    return '<div class="photo-card"><img src="' + src + '" alt="Photo J.B.C Crome" loading="lazy" onerror="this.parentElement.remove()"></div>';
-  }).join('');
+  function afficherVide(){
+    grid.innerHTML = '<div class="empty-state">Aucune photo pour le moment. Envoie tes clichés de convoi et je les ajouterai ici.</div>';
+  }
+
+  function ouvrirLightbox(i){
+    currentIndex = i;
+    lightboxImg.src = photos[currentIndex].url;
+    lightbox.classList.add('open');
+  }
+
+  function fermerLightbox(){
+    lightbox.classList.remove('open');
+  }
+
+  function suivant(delta){
+    currentIndex = (currentIndex + delta + photos.length) % photos.length;
+    lightboxImg.src = photos[currentIndex].url;
+  }
+
+  btnClose.addEventListener('click', fermerLightbox);
+  btnPrev.addEventListener('click', function(){ suivant(-1); });
+  btnNext.addEventListener('click', function(){ suivant(1); });
+  lightbox.addEventListener('click', function(e){
+    if(e.target === lightbox) fermerLightbox();
+  });
+  document.addEventListener('keydown', function(e){
+    if(!lightbox.classList.contains('open')) return;
+    if(e.key === 'Escape') fermerLightbox();
+    if(e.key === 'ArrowLeft') suivant(-1);
+    if(e.key === 'ArrowRight') suivant(1);
+  });
+
+  function afficherGalerie(){
+    if(!photos.length){
+      afficherVide();
+      return;
+    }
+    grid.innerHTML = photos.map(function(p, i){
+      return '<div class="photo-card" data-index="' + i + '"><img src="' + p.url + '" alt="Photo J.B.C Crome" loading="lazy"></div>';
+    }).join('');
+
+    grid.querySelectorAll('.photo-card').forEach(function(card){
+      card.addEventListener('click', function(){
+        ouvrirLightbox(parseInt(card.dataset.index, 10));
+      });
+    });
+  }
+
+  const apiPath = GITHUB_FOLDER ? GITHUB_FOLDER : "";
+  const apiUrl = "https://api.github.com/repos/" + GITHUB_USER + "/" + GITHUB_REPO + "/contents/" + apiPath + "?ref=" + GITHUB_BRANCH;
+
+  fetch(apiUrl)
+    .then(function(res){
+      if(!res.ok) throw new Error("Erreur API GitHub");
+      return res.json();
+    })
+    .then(function(data){
+      photos = data
+        .filter(function(f){
+          return f.type === "file" &&
+                 /\.(jpe?g|png|webp|gif)$/i.test(f.name) &&
+                 EXCLURE.indexOf(f.name) === -1;
+        })
+        .map(function(f){
+          return { name: f.name, url: f.download_url };
+        });
+      afficherGalerie();
+    })
+    .catch(function(err){
+      console.error(err);
+      afficherErreur();
+    });
 })();
 </script>
 
