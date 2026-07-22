@@ -84,6 +84,41 @@
     padding:0 6vw;
     z-index:2;
   }
+  .hero-stats{
+    display:flex; align-items:center; justify-content:center;
+    gap:0;
+    margin-bottom:34px;
+    opacity:0; animation:riseIn .8s ease forwards 0s;
+  }
+  .hero-stat{
+    display:flex; flex-direction:column; align-items:center;
+    padding:0 28px;
+    min-width:96px;
+  }
+  .hero-stat-value{
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    font-size:clamp(22px, 3vw, 32px);
+    letter-spacing:1px;
+    background:linear-gradient(180deg, #ffffff 0%, #c7ccd3 45%, #8a8f97 55%, #eef0f2 100%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    line-height:1;
+    font-variant-numeric:tabular-nums;
+  }
+  .hero-stat-label{
+    margin-top:9px;
+    font-size:10px; letter-spacing:2px; text-transform:uppercase;
+    color:var(--chrome-300);
+  }
+  .hero-stat-sep{
+    width:1px; height:34px; flex-shrink:0;
+    background:linear-gradient(180deg, transparent, rgba(255,255,255,.22), transparent);
+  }
+  @media (max-width:600px){
+    .hero-stat{padding:0 16px; min-width:0;}
+  }
   .hero-eyebrow{
     font-size:12px; letter-spacing:4px; text-transform:uppercase;
     color:var(--arc-blue); font-weight:600; margin-bottom:26px;
@@ -474,6 +509,22 @@
 </header>
 
 <section class="hero">
+  <div class="hero-stats" id="hero-stats">
+    <div class="hero-stat">
+      <span class="hero-stat-value" id="hs-chauffeurs">–</span>
+      <span class="hero-stat-label">Chauffeurs</span>
+    </div>
+    <span class="hero-stat-sep"></span>
+    <div class="hero-stat">
+      <span class="hero-stat-value" id="hs-trajets">–</span>
+      <span class="hero-stat-label">Trajets</span>
+    </div>
+    <span class="hero-stat-sep"></span>
+    <div class="hero-stat">
+      <span class="hero-stat-value" id="hs-km">–</span>
+      <span class="hero-stat-label">Km parcourus</span>
+    </div>
+  </div>
   <span class="hero-eyebrow">Virtual Trucking Company — Euro Truck Simulator 2</span>
   <h1><span>J.B.C</span><span>CROME</span></h1>
   <p class="tag">Une société de transport virtuelle sur Euro Truck Simulator 2 / TruckersMP. Rejoins le convoi, roule avec nous, laisse une finition chromée sur la route.</p>
@@ -629,6 +680,38 @@
   redimensionner();
   window.addEventListener('resize', redimensionner);
   requestAnimationFrame(pas);
+})();
+</script>
+
+<script>
+(function(){
+  // ⚠️ À mettre à jour avec l'URL donnée par cloudflared au démarrage du bot
+  // (même tunnel que /api/team, juste avec /api/stats à la fin).
+  const STATS_API_URL = "https://substances-hire-geography-wonderful.trycloudflare.com/api/stats";
+
+  const bloc = document.getElementById('hero-stats');
+  const elChauffeurs = document.getElementById('hs-chauffeurs');
+  const elTrajets = document.getElementById('hs-trajets');
+  const elKm = document.getElementById('hs-km');
+
+  function formaterNombre(n){
+    return Number(n || 0).toLocaleString('fr-FR');
+  }
+
+  fetch(STATS_API_URL)
+    .then(function(res){
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    })
+    .then(function(data){
+      elChauffeurs.textContent = formaterNombre(data.chauffeurs);
+      elTrajets.textContent = formaterNombre(data.trajets);
+      elKm.textContent = formaterNombre(data.km) + ' km';
+    })
+    .catch(function(err){
+      console.warn('[hero-stats] indisponibles :', err.message);
+      if(bloc) bloc.style.display = 'none';
+    });
 })();
 </script>
 
