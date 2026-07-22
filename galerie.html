@@ -366,11 +366,39 @@
     font-size:12px;
   }
 
+  .event-category{margin-bottom:48px;}
+  .event-category:last-child{margin-bottom:0;}
+  .event-category-title{
+    font-family:'Oswald', sans-serif; font-size:14px; letter-spacing:2px; text-transform:uppercase;
+    color:var(--arc-blue); margin-bottom:20px;
+    display:flex; align-items:center; gap:14px;
+  }
+  .event-category-title::after{
+    content:""; flex:1; height:1px;
+    background:linear-gradient(90deg, rgba(95,209,255,.35), transparent);
+  }
+  .event-desc-list{
+    list-style:none;
+    color:var(--chrome-300);
+    font-size:14px;
+    line-height:1.7;
+    margin-bottom:20px;
+  }
+  .event-desc-list li{
+    padding-left:16px;
+    position:relative;
+  }
+  .event-desc-list li::before{
+    content:"›";
+    position:absolute; left:0;
+    color:var(--arc-blue);
+  }
+
   footer{
-    padding:50px 6vw 40px;
+    padding:24px 6vw 20px;
     border-top:1px solid rgba(255,255,255,.06);
     display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;
-    color:var(--chrome-300); font-size:12px; letter-spacing:.5px;
+    color:var(--chrome-300); font-size:11px; letter-spacing:.5px;
     position:relative; z-index:2;
   }
 
@@ -380,6 +408,15 @@
     nav a{font-size:11px;}
     .plates{grid-template-columns:1fr;}
     .discord-band{flex-direction:column; text-align:center; align-items:center;}
+  }
+
+  body.push-footer{
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+  }
+  body.push-footer footer{
+    margin-top:auto;
   }
 
   ::selection{background:var(--arc-blue); color:#0e0f12;}
@@ -453,7 +490,7 @@
   @keyframes preloaderSpin{ to{ transform:rotate(360deg); } }
 </style>
 </head>
-<body>
+<body class="push-footer">
 
 <div id="preloader">
   <div class="preloader-ring"></div>
@@ -470,7 +507,7 @@
   <nav>
     <ul>
       <li><a href="index.html">Accueil</a></li>
-      <li><a href="apropos.html">A propos</a></li>
+      <li><a href="apropos.html">Le Groupe</a></li>
       <li><a href="equipe.html">Équipe</a></li>
       <li><a href="evenements.html">Événements</a></li>
       <li><a href="discord.html">Discord</a></li>
