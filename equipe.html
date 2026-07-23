@@ -744,11 +744,14 @@
     el.textContent = text;
   }
 
-  async function syncTeam(){
-    try{
-      const res = await fetch(TEAM_API_URL, { cache: 'no-store' });
-      if(!res.ok) throw new Error('HTTP ' + res.status);
-      const data = await res.json();
+async function syncTeam(){
+  try{
+    const res = await fetch(TEAM_API_URL, {
+      cache: 'no-store',
+      headers: { 'ngrok-skip-browser-warning': '1' }
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
 
       Object.keys(ROLE_LABELS).forEach(key => {
         const grid = document.getElementById('role-' + key);
