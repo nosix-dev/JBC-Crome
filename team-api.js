@@ -1,27 +1,31 @@
 // team-api.js
 // Module qui expose GET /api/team et GET /api/stats pour le site J.B.C Crome,
-// exposé en HTTPS via un tunnel Cloudflare (binaire officiel piloté
-// directement, sans wrapper npm tiers).
+// exposé en HTTPS via un tunnel ngrok (domaine gratuit fixe, binaire officiel
+// piloté directement, sans wrapper npm tiers).
 //
 // Utilisation dans index.js :
 //   const { startTeamApi } = require("./team-api");
 //   client.on("clientReady", () => { ...; startTeamApi(client); });
+//
+// Variables .env requises :
+//   NGROK_AUTHTOKEN = ton authtoken (dashboard ngrok -> "Your Authtoken")
+//   NGROK_DOMAIN    = ton domaine gratuit assigné (dashboard ngrok -> Gateway > Domains,
+//                     type xxxxx.ngrok-free.dev). NE PAS mettre https:// devant.
 
 const fs = require("fs");
 const path = require("path");
 const https = require("https");
-const { spawn } = require("child_process");
+const { spawn, execFileSync } = require("child_process");
 const express = require("express");
 const cors = require("cors");
 
 // ==== CONFIG ====
 const GUILD_ID = process.env.GUILD_ID || null;
-// Port interne (le tunnel Cloudflare fait une connexion sortante,
-// pas besoin que ce soit le port public alloué par l'hébergeur).
 const PORT = process.env.TEAM_API_PORT || 26079;
 
-// Mappe chaque clé du site à l'ID du rôle Discord correspondant.
-// Clic droit sur le rôle dans Discord (mode développeur activé) -> Copier l'ID.
+const NGROK_AUTHTOKEN = process.env.NGROK_AUTHTOKEN || null;
+const NGROK_DOMAIN = process.env.NGROK_DOMAIN || null;
+
 const ROLE_IDS = {
   patron: "1495109483028807740",
   gerants: "1495109879403385003",
@@ -30,11 +34,12 @@ const ROLE_IDS = {
   chauffeurs_essai: "1527806431519314183",
 };
 
-// Fichier de données du bot (mêmes stats société que /statut et le statut dynamique).
 const DATA_PATH = path.join(__dirname, "data.json");
 
-const CLOUDFLARED_BIN = path.join(__dirname, "cloudflared-bin");
-const CLOUDFLARED_URL = "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64";
+const NGROK_DIR = path.join(__dirname, "ngrok-bin");
+const NGROK_BIN = path.join(NGROK_DIR, "ngrok");
+const NGROK_TARBALL = path.join(NGROK_DIR, "ngrok.tgz");
+const NGROK_URL = "https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz";
 // =================
 
 function resoudreGuild(client) {
@@ -55,18 +60,48 @@ function chargerDonneesBot() {
 }
 
 const CACHE_MS = 60 * 1000;
+const MEMBERS_CACHE_MS = 5 * 60 * 1000;
+let membersCache = null;
+let membersCacheTime = 0;
+let membersFetchPromise = null;
+
 let cache = null;
 let cacheTime = 0;
 let cacheStats = null;
 let cacheStatsTime = 0;
 let started = false;
 
+async function getGuildMembers(guild) {
+  const now = Date.now();
+  if (membersCache && now - membersCacheTime < MEMBERS_CACHE_MS) {
+    return membersCache;
+  }
+
+  if (!membersFetchPromise) {
+    membersFetchPromise = guild.members.fetch()
+      .then((members) => {
+        membersCache = members;
+        membersCacheTime = Date.now();
+        return members;
+      })
+      .catch((err) => {
+        membersFetchPromise = null;
+        throw err;
+      });
+
+    membersFetchPromise.finally(() => {
+      membersFetchPromise = null;
+    });
+  }
+
+  return membersFetchPromise;
+}
+
 async function buildTeamData(client) {
   const guild = resoudreGuild(client);
   if (!guild) throw new Error("Aucun serveur Discord disponible pour le bot.");
 
-  const members = await guild.members.fetch();
-
+  const members = await getGuildMembers(guild);
   const result = {};
 
   for (const [key, roleId] of Object.entries(ROLE_IDS)) {
@@ -96,13 +131,11 @@ async function getTeamData(client) {
   return cache;
 }
 
-// Nombre de chauffeurs (rôle "chauffeurs") + km/trajets cumulés par la société,
-// pour la bannière de stats du site.
 async function buildStatsData(client) {
   const guild = resoudreGuild(client);
   if (!guild) throw new Error("Aucun serveur Discord disponible pour le bot.");
 
-  const members = await guild.members.fetch();
+  const members = await getGuildMembers(guild);
   const roleChauffeurs = guild.roles.cache.get(ROLE_IDS.chauffeurs);
   const nbChauffeurs = roleChauffeurs
     ? members.filter((m) => m.roles.cache.has(roleChauffeurs.id)).size
@@ -130,7 +163,6 @@ async function getStatsData(client) {
   return cacheStats;
 }
 
-// Suit les redirections (github.com/.../latest/download/... redirige 2-3 fois)
 function telechargerFichier(url, destPath, redirectsRestants = 5) {
   return new Promise((resolve, reject) => {
     https.get(url, { headers: { "User-Agent": "team-api-script" } }, (res) => {
@@ -151,41 +183,57 @@ function telechargerFichier(url, destPath, redirectsRestants = 5) {
   });
 }
 
-async function assurerBinaireCloudflared() {
-  if (fs.existsSync(CLOUDFLARED_BIN)) return;
+async function assurerBinaireNgrok() {
+  if (fs.existsSync(NGROK_BIN)) return;
 
-  console.log("[team-api] binaire cloudflared absent, téléchargement...");
-  await telechargerFichier(CLOUDFLARED_URL, CLOUDFLARED_BIN);
-  fs.chmodSync(CLOUDFLARED_BIN, 0o755);
-  console.log("[team-api] binaire cloudflared installé :", CLOUDFLARED_BIN);
+  if (!fs.existsSync(NGROK_DIR)) fs.mkdirSync(NGROK_DIR, { recursive: true });
+
+  console.log("[team-api] binaire ngrok absent, téléchargement...");
+  await telechargerFichier(NGROK_URL, NGROK_TARBALL);
+
+  console.log("[team-api] extraction...");
+  execFileSync("tar", ["xzf", NGROK_TARBALL, "-C", NGROK_DIR]);
+  fs.chmodSync(NGROK_BIN, 0o755);
+  fs.unlinkSync(NGROK_TARBALL);
+
+  console.log("[team-api] binaire ngrok installé :", NGROK_BIN);
 }
 
-async function ouvrirTunnelCloudflare(port) {
-  try {
-    await assurerBinaireCloudflared();
-  } catch (err) {
-    console.error("[team-api] impossible de télécharger cloudflared:", err.message);
-    console.error("[team-api] le serveur n'est peut-être pas linux-amd64 — dis-moi l'OS de ton hébergeur.");
+async function ouvrirTunnelNgrok(port) {
+  if (!NGROK_AUTHTOKEN) {
+    console.error("[team-api] NGROK_AUTHTOKEN manquant dans le .env — impossible de lancer le tunnel.");
+    return;
+  }
+  if (!NGROK_DOMAIN) {
+    console.error("[team-api] NGROK_DOMAIN manquant dans le .env — impossible de lancer le tunnel.");
     return;
   }
 
-  const child = spawn(CLOUDFLARED_BIN, ["tunnel", "--url", `http://localhost:${port}`]);
-  let urlTrouvee = false;
+  try {
+    await assurerBinaireNgrok();
+  } catch (err) {
+    console.error("[team-api] impossible de télécharger/extraire ngrok:", err.message);
+    console.error("[team-api] vérifie que 'tar' est disponible sur l'hébergeur, et que l'OS est bien linux-amd64.");
+    return;
+  }
 
+  const child = spawn(
+    NGROK_BIN,
+    ["http", `--url=${NGROK_DOMAIN}`, String(port)],
+    { env: { ...process.env, NGROK_AUTHTOKEN } }
+  );
+
+  let annonce = false;
   const gererLigne = (buf) => {
     const text = buf.toString();
-    console.log("[cloudflared]", text.trim());
+    console.log("[ngrok]", text.trim());
 
-    if (!urlTrouvee) {
-      const match = text.match(/https:\/\/[a-zA-Z0-9-]+\.trycloudflare\.com/);
-      if (match) {
-        urlTrouvee = true;
-        const publicUrl = match[0];
-        console.log(`[team-api] tunnel Cloudflare actif : ${publicUrl}`);
-        console.log(`[team-api] ⚠️ mets à jour index.html avec :`);
-        console.log(`[team-api]    - TEAM_API_URL  = ${publicUrl}/api/team`);
-        console.log(`[team-api]    - STATS_API_URL = ${publicUrl}/api/stats`);
-      }
+    if (!annonce && /started tunnel|client session established/i.test(text)) {
+      annonce = true;
+      console.log(`[team-api] tunnel ngrok actif : https://${NGROK_DOMAIN}`);
+      console.log(`[team-api] ⚠️ mets à jour index.html avec :`);
+      console.log(`[team-api]    - TEAM_API_URL  = https://${NGROK_DOMAIN}/api/team`);
+      console.log(`[team-api]    - STATS_API_URL = https://${NGROK_DOMAIN}/api/stats`);
     }
   };
 
@@ -193,11 +241,12 @@ async function ouvrirTunnelCloudflare(port) {
   child.stderr.on("data", gererLigne);
 
   child.on("exit", (code) => {
-    console.error(`[team-api] cloudflared s'est arrêté (code ${code}).`);
+    console.error(`[team-api] ngrok s'est arrêté (code ${code}). Relance dans 5s...`);
+    setTimeout(() => ouvrirTunnelNgrok(port), 5000);
   });
 
   child.on("error", (err) => {
-    console.error("[team-api] impossible de lancer cloudflared:", err.message);
+    console.error("[team-api] impossible de lancer ngrok:", err.message);
   });
 }
 
@@ -235,7 +284,7 @@ function startTeamApi(client, options = {}) {
 
   app.listen(port, "0.0.0.0", async () => {
     console.log(`[team-api] écoute en interne sur le port ${port}`);
-    await ouvrirTunnelCloudflare(port);
+    await ouvrirTunnelNgrok(port);
   });
 }
 
