@@ -76,7 +76,7 @@
   nav a:hover::after, nav a.active::after{width:100%;}
 
   section{position:relative; z-index:2; padding:110px 6vw; scroll-margin-top:90px;}
-  .section-head{max-width:640px; margin-bottom:56px;}
+  .section-head{max-width:640px; margin-bottom:40px;}
   .eyebrow{
     font-size:12px; letter-spacing:4px; text-transform:uppercase; color:var(--arc-blue);
     font-weight:600; margin-bottom:16px; display:block;
@@ -87,6 +87,32 @@
     color:var(--chrome-white);
   }
   .section-head p{margin-top:16px; color:var(--chrome-300); line-height:1.7; font-size:15px;}
+
+  /* Filtres de catégories */
+  .category-filters{
+    display:flex; flex-wrap:wrap; gap:10px;
+    margin-bottom:32px;
+  }
+  .category-filters button{
+    font-family:'Inter', sans-serif;
+    font-size:12px; letter-spacing:1px; text-transform:uppercase; font-weight:600;
+    color:var(--chrome-300);
+    background:var(--steel-700);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:30px;
+    padding:9px 18px;
+    cursor:pointer;
+    transition:all .2s ease;
+  }
+  .category-filters button:hover{
+    border-color:rgba(95,209,255,.4);
+    color:var(--chrome-white);
+  }
+  .category-filters button.active{
+    background:linear-gradient(180deg, var(--arc-blue), var(--arc-blue-dim));
+    border-color:transparent;
+    color:#0e0f12;
+  }
 
   .static-gallery{
     display:grid;
@@ -123,6 +149,16 @@
     pointer-events:none;
   }
   .static-gallery .photo-card:hover::after{opacity:1;}
+  .photo-card .badge{
+    position:absolute; top:10px; left:10px;
+    padding:5px 12px;
+    font-size:10px; letter-spacing:1px; text-transform:uppercase; font-weight:600;
+    color:var(--chrome-white);
+    background:rgba(20,22,26,.72);
+    border:1px solid rgba(95,209,255,.4);
+    border-radius:30px;
+    backdrop-filter:blur(4px);
+  }
 
   .empty-state, .loading-state{
     grid-column:1/-1;
@@ -202,9 +238,79 @@
   body.push-footer footer{margin-top:auto;}
 
   ::selection{background:var(--arc-blue); color:#0e0f12;}
+
+  /* Écran de chargement */
+  #preloader{
+    position:fixed; inset:0; z-index:999;
+    background:var(--steel-900);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:26px;
+    transition:opacity .6s ease, visibility .6s ease;
+  }
+  #preloader.hidden{
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+  }
+  .preloader-logo{
+    font-family:'Oswald', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:4px;
+    background:linear-gradient(180deg, #fff 0%, #b9bec6 45%, #7d828a 50%, #e7eaed 60%, #fff 100%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .preloader-ring{
+    width:52px; height:52px;
+    border-radius:50%;
+    border:2px solid rgba(255,255,255,.08);
+    border-top-color:var(--arc-blue);
+    animation:preloaderSpin .9s linear infinite;
+  }
+  .preloader-bar{
+    width:220px; height:3px;
+    background:rgba(255,255,255,.08);
+    border-radius:3px;
+    overflow:hidden;
+    position:relative;
+  }
+  .preloader-bar-fill{
+    height:100%;
+    width:0%;
+    border-radius:3px;
+    background:linear-gradient(90deg, var(--arc-blue-dim), var(--arc-blue));
+    box-shadow:0 0 12px rgba(95,209,255,.6);
+    transition:width .25s ease-out;
+  }
+  .preloader-percent{
+    font-family:'Oswald', sans-serif;
+    font-size:13px;
+    letter-spacing:2px;
+    color:var(--chrome-300);
+    font-variant-numeric:tabular-nums;
+    min-width:42px;
+    text-align:center;
+  }
+  .preloader-status{
+    font-size:10px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:rgba(238,240,242,.35);
+  }
+  @keyframes preloaderSpin{ to{ transform:rotate(360deg); } }
 </style>
 </head>
 <body class="push-footer">
+
+<div id="preloader">
+  <div class="preloader-ring"></div>
+  <div class="preloader-logo">J.B.C&nbsp;CROME</div>
+  <div class="preloader-bar"><div class="preloader-bar-fill" id="preloader-fill"></div></div>
+  <div class="preloader-percent" id="preloader-percent">0%</div>
+  <div class="preloader-status" id="preloader-status">Chargement du site…</div>
+</div>
 
 <header>
   <a href="index.html" class="logo">J.B.C&nbsp;CROME</a>
@@ -226,6 +332,9 @@
     <h2>La galerie</h2>
     <p>Une sélection de photos de convois et de la flotte J.B.C Crome — clique sur une photo pour l'agrandir.</p>
   </div>
+
+  <div id="category-filters" class="category-filters"></div>
+
   <div id="gallery-grid" class="static-gallery">
     <div class="loading-state">Chargement des photos…</div>
   </div>
@@ -246,25 +355,99 @@
 
 <script>
 (function(){
+  const preloader = document.getElementById('preloader');
+  const fill = document.getElementById('preloader-fill');
+  const percentLabel = document.getElementById('preloader-percent');
+  const statusLabel = document.getElementById('preloader-status');
+  if(!preloader || !fill || !percentLabel) return;
+
+  const DUREE_MIN_MS = 150;
+  const DUREE_MAX_MS = 400;
+
+  const debut = performance.now();
+  let pageEstPrete = (document.readyState === 'complete');
+  let masque = false;
+
+  const messages = [
+    'Chargement du site…',
+    'Préparation de la flotte…',
+    'Polissage du chrome…',
+    'Presque prêt…'
+  ];
+
+  window.addEventListener('load', function(){ pageEstPrete = true; });
+
+  function definirProgression(pct){
+    pct = Math.max(0, Math.min(100, pct));
+    fill.style.width = pct + '%';
+    percentLabel.textContent = Math.round(pct) + '%';
+    if(statusLabel){
+      const idx = Math.min(messages.length - 1, Math.floor((pct / 100) * messages.length));
+      statusLabel.textContent = messages[idx];
+    }
+  }
+
+  function cacherPreloader(){
+    if(masque) return;
+    masque = true;
+    definirProgression(100);
+    setTimeout(function(){
+      preloader.classList.add('hidden');
+    }, 150);
+  }
+
+  function boucle(){
+    const ecoule = performance.now() - debut;
+    const ratioTemps = Math.min(1, ecoule / DUREE_MIN_MS);
+    const progressionSimulee = 90 * (1 - Math.pow(1 - ratioTemps, 2));
+    definirProgression(progressionSimulee);
+
+    const dureeMinAtteinte = ecoule >= DUREE_MIN_MS;
+    const dureeMaxAtteinte = ecoule >= DUREE_MAX_MS;
+
+    if((pageEstPrete && dureeMinAtteinte) || dureeMaxAtteinte){
+      cacherPreloader();
+      return;
+    }
+    requestAnimationFrame(boucle);
+  }
+  requestAnimationFrame(boucle);
+})();
+</script>
+
+<script>
+(function(){
   // ==== A CONFIGURER ====
   const GITHUB_USER = "nosix-dev";
   const GITHUB_REPO = "JBC-Crome";
   const GITHUB_BRANCH = "main";
-  // Dossier contenant les photos. Mets "" pour la racine du repo.
+  // Dossier contenant les photos. Les fichiers posés directement dedans
+  // sont classés "Général" ; chaque SOUS-DOSSIER devient automatiquement
+  // une catégorie de filtre (ex : galerie/convois, galerie/evenements, galerie/flotte...).
   const GITHUB_FOLDER = "galerie";
   // Fichiers à ignorer si tu utilises la racine (logo, icônes, etc.)
   const EXCLURE = ["LogoV3.png"];
+  // Nom affiché pour les photos posées directement dans GITHUB_FOLDER (sans sous-dossier)
+  const CATEGORIE_RACINE = "Général";
+  const LABEL_TOUTES = "Toutes";
   // =======================
 
   const grid = document.getElementById('gallery-grid');
+  const filtersBar = document.getElementById('category-filters');
   const lightbox = document.getElementById('lightbox');
   const lightboxImg = document.getElementById('lightbox-img');
   const btnClose = document.getElementById('lightbox-close');
   const btnPrev = document.getElementById('lightbox-prev');
   const btnNext = document.getElementById('lightbox-next');
 
-  let photos = [];
+  let photos = [];        // toutes les photos { name, url, categorie }
+  let photosAffichees = []; // sous-ensemble actuellement affiché (selon le filtre)
+  let filtreActif = LABEL_TOUTES;
   let currentIndex = 0;
+
+  function estImage(nom){
+    return /\.(jpe?g|png|webp|gif)$/i.test(nom);
+  }
 
   function afficherErreur(){
     grid.innerHTML = '<div class="empty-state">Impossible de charger la galerie pour le moment. Réessaie plus tard.</div>';
@@ -276,7 +459,7 @@
 
   function ouvrirLightbox(i){
     currentIndex = i;
-    lightboxImg.src = photos[currentIndex].url;
+    lightboxImg.src = photosAffichees[currentIndex].url;
     lightbox.classList.add('open');
   }
 
@@ -285,8 +468,8 @@
   }
 
   function suivant(delta){
-    currentIndex = (currentIndex + delta + photos.length) % photos.length;
-    lightboxImg.src = photos[currentIndex].url;
+    currentIndex = (currentIndex + delta + photosAffichees.length) % photosAffichees.length;
+    lightboxImg.src = photosAffichees[currentIndex].url;
   }
 
   btnClose.addEventListener('click', fermerLightbox);
@@ -302,13 +485,42 @@
     if(e.key === 'ArrowRight') suivant(1);
   });
 
+  function afficherFiltres(categories){
+    if(categories.length <= 1){
+      filtersBar.innerHTML = '';
+      return;
+    }
+    const toutes = [LABEL_TOUTES, ...categories];
+    filtersBar.innerHTML = toutes.map(function(cat){
+      const actif = cat === filtreActif ? ' active' : '';
+      return '<button type="button" class="' + actif.trim() + '" data-cat="' + cat.replace(/"/g,'&quot;') + '">' + cat + '</button>';
+    }).join('');
+
+    filtersBar.querySelectorAll('button').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        filtreActif = btn.dataset.cat;
+        filtersBar.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        afficherGalerie();
+      });
+    });
+  }
+
   function afficherGalerie(){
-    if(!photos.length){
+    photosAffichees = filtreActif === LABEL_TOUTES
+      ? photos
+      : photos.filter(p => p.categorie === filtreActif);
+
+    if(!photosAffichees.length){
       afficherVide();
       return;
     }
-    grid.innerHTML = photos.map(function(p, i){
-      return '<div class="photo-card" data-index="' + i + '"><img src="' + p.url + '" alt="Photo J.B.C Crome" loading="lazy"></div>';
+
+    grid.innerHTML = photosAffichees.map(function(p, i){
+      return '<div class="photo-card" data-index="' + i + '">'
+        + '<span class="badge">' + p.categorie + '</span>'
+        + '<img src="' + p.url + '" alt="Photo J.B.C Crome" loading="lazy">'
+        + '</div>';
     }).join('');
 
     grid.querySelectorAll('.photo-card').forEach(function(card){
@@ -318,24 +530,43 @@
     });
   }
 
-  const apiPath = GITHUB_FOLDER ? GITHUB_FOLDER : "";
-  const apiUrl = "https://api.github.com/repos/" + GITHUB_USER + "/" + GITHUB_REPO + "/contents/" + apiPath + "?ref=" + GITHUB_BRANCH;
+  function urlDossier(chemin){
+    return "https://api.github.com/repos/" + GITHUB_USER + "/" + GITHUB_REPO + "/contents/" + chemin + "?ref=" + GITHUB_BRANCH;
+  }
 
-  fetch(apiUrl)
-    .then(function(res){
-      if(!res.ok) throw new Error("Erreur API GitHub");
-      return res.json();
-    })
-    .then(function(data){
-      photos = data
-        .filter(function(f){
-          return f.type === "file" &&
-                 /\.(jpe?g|png|webp|gif)$/i.test(f.name) &&
-                 EXCLURE.indexOf(f.name) === -1;
-        })
-        .map(function(f){
-          return { name: f.name, url: f.download_url };
-        });
+  async function chargerDossier(chemin){
+    const res = await fetch(urlDossier(chemin));
+    if(!res.ok) throw new Error("Erreur API GitHub (" + chemin + ")");
+    return res.json();
+  }
+
+  async function chargerPhotos(){
+    const racine = await chargerDossier(GITHUB_FOLDER);
+
+    const fichiersRacine = racine
+      .filter(f => f.type === "file" && estImage(f.name) && EXCLURE.indexOf(f.name) === -1)
+      .map(f => ({ name: f.name, url: f.download_url, categorie: CATEGORIE_RACINE }));
+
+    const sousDossiers = racine.filter(f => f.type === "dir");
+
+    const contenusSousDossiers = await Promise.all(
+      sousDossiers.map(d => chargerDossier(d.path).catch(() => []))
+    );
+
+    const fichiersSousDossiers = sousDossiers.flatMap(function(dossier, i){
+      return contenusSousDossiers[i]
+        .filter(f => f.type === "file" && estImage(f.name))
+        .map(f => ({ name: f.name, url: f.download_url, categorie: dossier.name }));
+    });
+
+    return [...fichiersRacine, ...fichiersSousDossiers];
+  }
+
+  chargerPhotos()
+    .then(function(liste){
+      photos = liste;
+      const categories = [...new Set(photos.map(p => p.categorie))].sort((a, b) => a.localeCompare(b, 'fr'));
+      afficherFiltres(categories);
       afficherGalerie();
     })
     .catch(function(err){
