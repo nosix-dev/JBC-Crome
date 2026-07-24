@@ -76,7 +76,7 @@
   nav a:hover::after, nav a.active::after{width:100%;}
 
   section{position:relative; z-index:2; padding:110px 6vw; scroll-margin-top:90px;}
-  .section-head{max-width:640px; margin-bottom:40px;}
+  .section-head{max-width:640px; margin-bottom:56px;}
   .eyebrow{
     font-size:12px; letter-spacing:4px; text-transform:uppercase; color:var(--arc-blue);
     font-weight:600; margin-bottom:16px; display:block;
@@ -88,76 +88,75 @@
   }
   .section-head p{margin-top:16px; color:var(--chrome-300); line-height:1.7; font-size:15px;}
 
-  /* Filtres de catégories */
-  .category-filters{
-    display:flex; flex-wrap:wrap; gap:10px;
-    margin-bottom:32px;
-  }
-  .category-filters button{
-    font-family:'Inter', sans-serif;
-    font-size:12px; letter-spacing:1px; text-transform:uppercase; font-weight:600;
-    color:var(--chrome-300);
-    background:var(--steel-700);
-    border:1px solid rgba(255,255,255,.1);
-    border-radius:30px;
-    padding:9px 18px;
-    cursor:pointer;
-    transition:all .2s ease;
-  }
-  .category-filters button:hover{
-    border-color:rgba(95,209,255,.4);
-    color:var(--chrome-white);
-  }
-  .category-filters button.active{
-    background:linear-gradient(180deg, var(--arc-blue), var(--arc-blue-dim));
-    border-color:transparent;
-    color:#0e0f12;
-  }
-
-  .static-gallery{
+  /* Grille d'albums */
+  .albums-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(220px,1fr));
-    gap:18px;
+    grid-template-columns:repeat(auto-fill, minmax(320px,1fr));
+    gap:26px;
   }
-  .static-gallery .photo-card{
-    position:relative;
-    border-radius:6px;
+  .album-card{
+    background:linear-gradient(160deg, var(--steel-700), var(--steel-800));
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:10px;
     overflow:hidden;
-    aspect-ratio:1/1;
-    background:var(--steel-700);
-    border:1px solid rgba(255,255,255,.08);
-    box-shadow:0 10px 24px rgba(0,0,0,.35);
-    cursor:zoom-in;
+    cursor:pointer;
+    transition:transform .3s ease, border-color .3s ease;
   }
-  .static-gallery .photo-card img{
-    width:100%; height:100%; object-fit:cover; display:block;
-    transition:transform .35s ease;
+  .album-card:hover{transform:translateY(-6px); border-color:rgba(95,209,255,.35);}
+  .album-cover{
+    position:relative;
+    aspect-ratio:16/10.5;
+    background-size:cover;
+    background-position:center;
   }
-  .static-gallery .photo-card:hover img{transform:scale(1.06);}
-  .static-gallery .photo-card::after{
-    content:"⤢";
-    position:absolute; top:10px; right:10px;
-    width:28px; height:28px;
-    display:flex; align-items:center; justify-content:center;
-    background:rgba(20,22,26,.65);
+  .album-cover-overlay{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; justify-content:flex-end;
+    padding:18px 20px;
+    background:linear-gradient(180deg, rgba(20,22,26,0) 35%, rgba(20,22,26,.55) 70%, rgba(20,22,26,.92) 100%);
+  }
+  .album-category{
+    font-family:'Inter', sans-serif;
+    font-size:11px; letter-spacing:2px; text-transform:uppercase; font-weight:600;
+    color:var(--arc-blue);
+    margin-bottom:6px;
+  }
+  .album-title{
+    font-family:'Oswald', sans-serif;
+    font-size:19px; line-height:1.25;
+    text-transform:uppercase; letter-spacing:.5px;
+    color:var(--chrome-white);
+  }
+  .album-body{
+    padding:20px 20px 22px;
+    display:flex; flex-direction:column; gap:16px;
+  }
+  .album-body p{
+    color:var(--chrome-300);
+    font-size:13.5px;
+    line-height:1.6;
+    display:-webkit-box;
+    -webkit-line-clamp:3;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .album-footer{
+    display:flex; justify-content:flex-end;
+  }
+  .album-count-pill{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:11px; letter-spacing:1px; text-transform:uppercase; font-weight:600;
+    color:var(--chrome-white);
+    background:rgba(255,255,255,.06);
     border:1px solid rgba(255,255,255,.15);
-    border-radius:5px;
-    color:var(--chrome-white);
-    font-size:14px;
-    opacity:0;
-    transition:opacity .25s ease;
-    pointer-events:none;
-  }
-  .static-gallery .photo-card:hover::after{opacity:1;}
-  .photo-card .badge{
-    position:absolute; top:10px; left:10px;
-    padding:5px 12px;
-    font-size:10px; letter-spacing:1px; text-transform:uppercase; font-weight:600;
-    color:var(--chrome-white);
-    background:rgba(20,22,26,.72);
-    border:1px solid rgba(95,209,255,.4);
     border-radius:30px;
-    backdrop-filter:blur(4px);
+    padding:8px 16px;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .album-card:hover .album-count-pill{
+    border-color:rgba(95,209,255,.5);
+    background:rgba(95,209,255,.1);
+    color:var(--arc-blue);
   }
 
   .empty-state, .loading-state{
@@ -184,6 +183,7 @@
     background:rgba(10,11,13,.92);
     backdrop-filter:blur(6px);
     display:none;
+    flex-direction:column;
     align-items:center; justify-content:center;
     padding:5vh 5vw;
     opacity:0;
@@ -191,13 +191,22 @@
   }
   #lightbox.open{display:flex; opacity:1;}
   #lightbox img{
-    max-width:100%; max-height:90vh;
+    max-width:100%; max-height:82vh;
     border-radius:8px;
     box-shadow:0 30px 70px rgba(0,0,0,.6);
     transform:scale(.96);
     transition:transform .25s ease;
   }
   #lightbox.open img{transform:scale(1);}
+  #lightbox-caption{
+    margin-top:18px;
+    text-align:center;
+    color:var(--chrome-300);
+    font-size:12px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+  }
+  #lightbox-caption strong{color:var(--chrome-white);}
   #lightbox-close{
     position:absolute; top:26px; right:6vw;
     width:42px; height:42px;
@@ -330,13 +339,11 @@
   <div class="section-head">
     <span class="eyebrow">Souvenirs de la route</span>
     <h2>La galerie</h2>
-    <p>Une sélection de photos de convois et de la flotte J.B.C Crome — clique sur une photo pour l'agrandir.</p>
+    <p>Une sélection de photos de convois et de la flotte J.B.C Crome — clique sur un album pour l'ouvrir.</p>
   </div>
 
-  <div id="category-filters" class="category-filters"></div>
-
-  <div id="gallery-grid" class="static-gallery">
-    <div class="loading-state">Chargement des photos…</div>
+  <div id="albums-grid" class="albums-grid">
+    <div class="loading-state">Chargement des albums…</div>
   </div>
 </section>
 
@@ -351,6 +358,7 @@
   <div id="lightbox-prev">‹</div>
   <img id="lightbox-img" src="" alt="Photo agrandie">
   <div id="lightbox-next">›</div>
+  <div id="lightbox-caption"></div>
 </div>
 
 <script>
@@ -421,32 +429,49 @@
   const GITHUB_USER = "nosix-dev";
   const GITHUB_REPO = "JBC-Crome";
   const GITHUB_BRANCH = "main";
-  // Dossier contenant les photos. Les fichiers posés directement dedans
-  // sont classés "Général" ; chaque SOUS-DOSSIER devient automatiquement
-  // une catégorie de filtre (ex : galerie/convois, galerie/evenements, galerie/flotte...).
+  // Dossier contenant les albums. Chaque SOUS-DOSSIER = un album (une carte).
   const GITHUB_FOLDER = "galerie";
-  // Fichiers à ignorer si tu utilises la racine (logo, icônes, etc.)
-  const EXCLURE = ["LogoV3.png"];
-  // Nom affiché pour les photos posées directement dans GITHUB_FOLDER (sans sous-dossier)
-  const CATEGORIE_RACINE = "Général";
-  const LABEL_TOUTES = "Toutes";
+  // Fichier optionnel à la racine du repo pour donner un titre / une description /
+  // une catégorie à chaque album. Sans ce fichier (ou pour un dossier absent dedans),
+  // le nom du dossier est utilisé tel quel comme titre, catégorie "Convoi" par défaut,
+  // et aucune description n'est affichée.
+  //
+  // Format de albums.json :
+  // [
+  //   {
+  //     "dossier": "12eme-anniversaire",
+  //     "categorie": "Convoi",
+  //     "titre": "12th Anniversary TruckersMP - Convoi officiel",
+  //     "description": "À l'occasion du 12ème anniversaire de TruckersMP...",
+  //     "couverture": "photo3.jpg"   // optionnel : sinon la 1ère photo du dossier sert de couverture
+  //   }
+  // ]
+  const ALBUMS_META_URL = "albums.json";
+  const CATEGORIE_DEFAUT = "Convoi";
   // =======================
 
-  const grid = document.getElementById('gallery-grid');
-  const filtersBar = document.getElementById('category-filters');
+  const grid = document.getElementById('albums-grid');
   const lightbox = document.getElementById('lightbox');
   const lightboxImg = document.getElementById('lightbox-img');
+  const lightboxCaption = document.getElementById('lightbox-caption');
   const btnClose = document.getElementById('lightbox-close');
   const btnPrev = document.getElementById('lightbox-prev');
   const btnNext = document.getElementById('lightbox-next');
 
-  let photos = [];        // toutes les photos { name, url, categorie }
-  let photosAffichees = []; // sous-ensemble actuellement affiché (selon le filtre)
-  let filtreActif = LABEL_TOUTES;
+  let albums = [];
+  let albumOuvert = null;
   let currentIndex = 0;
 
   function estImage(nom){
     return /\.(jpe?g|png|webp|gif)$/i.test(nom);
+  }
+
+  function prettifier(nomDossier){
+    return nomDossier
+      .replace(/[-_]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/\b\w/g, c => c.toUpperCase());
   }
 
   function afficherErreur(){
@@ -454,13 +479,20 @@
   }
 
   function afficherVide(){
-    grid.innerHTML = '<div class="empty-state">Aucune photo pour le moment. Envoie tes clichés de convoi et je les ajouterai ici.</div>';
+    grid.innerHTML = '<div class="empty-state">Aucun album pour le moment. Crée un sous-dossier dans "galerie" sur GitHub pour en ajouter un.</div>';
   }
 
-  function ouvrirLightbox(i){
-    currentIndex = i;
-    lightboxImg.src = photosAffichees[currentIndex].url;
+  function ouvrirLightbox(album, index){
+    albumOuvert = album;
+    currentIndex = index;
+    majImageLightbox();
     lightbox.classList.add('open');
+  }
+
+  function majImageLightbox(){
+    const photo = albumOuvert.photos[currentIndex];
+    lightboxImg.src = photo.url;
+    lightboxCaption.innerHTML = '<strong>' + albumOuvert.titre + '</strong> — ' + (currentIndex + 1) + ' / ' + albumOuvert.photos.length;
   }
 
   function fermerLightbox(){
@@ -468,8 +500,9 @@
   }
 
   function suivant(delta){
-    currentIndex = (currentIndex + delta + photosAffichees.length) % photosAffichees.length;
-    lightboxImg.src = photosAffichees[currentIndex].url;
+    if(!albumOuvert) return;
+    currentIndex = (currentIndex + delta + albumOuvert.photos.length) % albumOuvert.photos.length;
+    majImageLightbox();
   }
 
   btnClose.addEventListener('click', fermerLightbox);
@@ -485,47 +518,32 @@
     if(e.key === 'ArrowRight') suivant(1);
   });
 
-  function afficherFiltres(categories){
-    if(categories.length <= 1){
-      filtersBar.innerHTML = '';
-      return;
-    }
-    const toutes = [LABEL_TOUTES, ...categories];
-    filtersBar.innerHTML = toutes.map(function(cat){
-      const actif = cat === filtreActif ? ' active' : '';
-      return '<button type="button" class="' + actif.trim() + '" data-cat="' + cat.replace(/"/g,'&quot;') + '">' + cat + '</button>';
-    }).join('');
-
-    filtersBar.querySelectorAll('button').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        filtreActif = btn.dataset.cat;
-        filtersBar.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        afficherGalerie();
-      });
-    });
-  }
-
-  function afficherGalerie(){
-    photosAffichees = filtreActif === LABEL_TOUTES
-      ? photos
-      : photos.filter(p => p.categorie === filtreActif);
-
-    if(!photosAffichees.length){
+  function afficherAlbums(){
+    if(!albums.length){
       afficherVide();
       return;
     }
 
-    grid.innerHTML = photosAffichees.map(function(p, i){
-      return '<div class="photo-card" data-index="' + i + '">'
-        + '<span class="badge">' + p.categorie + '</span>'
-        + '<img src="' + p.url + '" alt="Photo J.B.C Crome" loading="lazy">'
-        + '</div>';
+    grid.innerHTML = albums.map(function(album, i){
+      const nbPhotos = album.photos.length;
+      const pill = nbPhotos > 1 ? ('⤢ ' + nbPhotos + ' PHOTOS') : '⤢ AGRANDIR';
+      const description = album.description ? '<p>' + album.description + '</p>' : '';
+      return '<div class="album-card" data-album-index="' + i + '">'
+        + '<div class="album-cover" style="background-image:url(\'' + album.couverture + '\')">'
+        + '<div class="album-cover-overlay">'
+        + '<span class="album-category">' + album.categorie + '</span>'
+        + '<h3 class="album-title">' + album.titre + '</h3>'
+        + '</div></div>'
+        + '<div class="album-body">'
+        + description
+        + '<div class="album-footer"><span class="album-count-pill">' + pill + '</span></div>'
+        + '</div></div>';
     }).join('');
 
-    grid.querySelectorAll('.photo-card').forEach(function(card){
+    grid.querySelectorAll('.album-card').forEach(function(card){
       card.addEventListener('click', function(){
-        ouvrirLightbox(parseInt(card.dataset.index, 10));
+        const album = albums[parseInt(card.dataset.albumIndex, 10)];
+        ouvrirLightbox(album, 0);
       });
     });
   }
@@ -540,34 +558,52 @@
     return res.json();
   }
 
-  async function chargerPhotos(){
-    const racine = await chargerDossier(GITHUB_FOLDER);
-
-    const fichiersRacine = racine
-      .filter(f => f.type === "file" && estImage(f.name) && EXCLURE.indexOf(f.name) === -1)
-      .map(f => ({ name: f.name, url: f.download_url, categorie: CATEGORIE_RACINE }));
-
-    const sousDossiers = racine.filter(f => f.type === "dir");
-
-    const contenusSousDossiers = await Promise.all(
-      sousDossiers.map(d => chargerDossier(d.path).catch(() => []))
-    );
-
-    const fichiersSousDossiers = sousDossiers.flatMap(function(dossier, i){
-      return contenusSousDossiers[i]
-        .filter(f => f.type === "file" && estImage(f.name))
-        .map(f => ({ name: f.name, url: f.download_url, categorie: dossier.name }));
-    });
-
-    return [...fichiersRacine, ...fichiersSousDossiers];
+  async function chargerMeta(){
+    try{
+      const res = await fetch(ALBUMS_META_URL, { cache: 'no-store' });
+      if(!res.ok) return {};
+      const liste = await res.json();
+      const map = {};
+      liste.forEach(function(entree){ map[entree.dossier] = entree; });
+      return map;
+    }catch(err){
+      console.warn('[galerie] Pas de albums.json (optionnel) :', err);
+      return {};
+    }
   }
 
-  chargerPhotos()
+  async function chargerAlbums(){
+    const [racine, meta] = await Promise.all([chargerDossier(GITHUB_FOLDER), chargerMeta()]);
+    const sousDossiers = racine.filter(f => f.type === "dir");
+
+    const contenus = await Promise.all(sousDossiers.map(d => chargerDossier(d.path).catch(() => [])));
+
+    return sousDossiers.map(function(dossier, i){
+      const fichiers = contenus[i].filter(f => f.type === "file" && estImage(f.name));
+      const photos = fichiers.map(f => ({ name: f.name, url: f.download_url }));
+      const infos = meta[dossier.name] || {};
+
+      let couverture = photos[0] ? photos[0].url : '';
+      if(infos.couverture){
+        const trouvee = photos.find(p => p.name === infos.couverture);
+        if(trouvee) couverture = trouvee.url;
+      }
+
+      return {
+        dossier: dossier.name,
+        categorie: infos.categorie || CATEGORIE_DEFAUT,
+        titre: infos.titre || prettifier(dossier.name),
+        description: infos.description || '',
+        couverture: couverture,
+        photos: photos,
+      };
+    }).filter(album => album.photos.length > 0);
+  }
+
+  chargerAlbums()
     .then(function(liste){
-      photos = liste;
-      const categories = [...new Set(photos.map(p => p.categorie))].sort((a, b) => a.localeCompare(b, 'fr'));
-      afficherFiltres(categories);
-      afficherGalerie();
+      albums = liste;
+      afficherAlbums();
     })
     .catch(function(err){
       console.error(err);
