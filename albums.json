@@ -1,14 +1,9 @@
 [
   {
-    "dossier": "12eme-anniversaire",
+    "dossier": "Beau Camion",
     "categorie": "Convoi",
-    "titre": "12th Anniversary TruckersMP - Convoi officiel",
-    "description": "À l'occasion du 12ème anniversaire de TruckersMP, notre équipe a participé à un convoi rassemblant de nombreux joueurs."
-  }
-  {
-    "dossier": "test-anniversaire",
-    "categorie": "Convoi",
-    "titre": "12th Anniversary TruckersMP - Convoi officiel",
-    "description": "À l'occasion du 12ème anniversaire de TruckersMP, notre équipe a participé à un convoi rassemblant de nombreux joueurs."
+    "titre": "Beau Camion J.B.C",
+    "description": "Tout les beau camion de la JBC CROME.",
+    "couverture": "photo3.jpg"
   }
 ]
