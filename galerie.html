@@ -429,7 +429,10 @@
   const GITHUB_USER = "nosix-dev";
   const GITHUB_REPO = "JBC-Crome";
   const GITHUB_BRANCH = "main";
-  // Dossier contenant les albums. Chaque SOUS-DOSSIER = un album (une carte).
+  // Dossier contenant les albums.
+  // - Chaque SOUS-DOSSIER à l'intérieur = un album (une carte).
+  // - Les photos posées directement à la racine de ce dossier (sans sous-dossier)
+  //   sont regroupées automatiquement dans un album "Photos" (voir ALBUM_RACINE_*).
   const GITHUB_FOLDER = "galerie";
   // Fichier optionnel à la racine du repo pour donner un titre / une description /
   // une catégorie à chaque album. Sans ce fichier (ou pour un dossier absent dedans),
@@ -446,8 +449,12 @@
   //     "couverture": "photo3.jpg"   // optionnel : sinon la 1ère photo du dossier sert de couverture
   //   }
   // ]
+  // Pour configurer l'album regroupant les photos à la racine, utilise la clé
+  // "dossier": "_racine" dans albums.json.
   const ALBUMS_META_URL = "albums.json";
   const CATEGORIE_DEFAUT = "Convoi";
+  const ALBUM_RACINE_CLE = "_racine";
+  const ALBUM_RACINE_TITRE = "Photos";
   // =======================
 
   const grid = document.getElementById('albums-grid');
@@ -479,7 +486,7 @@
   }
 
   function afficherVide(){
-    grid.innerHTML = '<div class="empty-state">Aucun album pour le moment. Crée un sous-dossier dans "galerie" sur GitHub pour en ajouter un.</div>';
+    grid.innerHTML = '<div class="empty-state">Aucun album pour le moment. Ajoute des photos dans "galerie" (ou crée un sous-dossier) sur GitHub pour en ajouter un.</div>';
   }
 
   function ouvrirLightbox(album, index){
@@ -572,32 +579,48 @@
     }
   }
 
+  function construireAlbum(nomDossier, cheminAffichage, fichiers, meta){
+    const photosImg = fichiers.filter(f => f.type === "file" && estImage(f.name));
+    const photos = photosImg.map(f => ({ name: f.name, url: f.download_url }));
+    const infos = meta[nomDossier] || {};
+
+    let couverture = photos[0] ? photos[0].url : '';
+    if(infos.couverture){
+      const trouvee = photos.find(p => p.name === infos.couverture);
+      if(trouvee) couverture = trouvee.url;
+    }
+
+    return {
+      dossier: nomDossier,
+      categorie: infos.categorie || CATEGORIE_DEFAUT,
+      titre: infos.titre || (cheminAffichage === null ? ALBUM_RACINE_TITRE : prettifier(nomDossier)),
+      description: infos.description || '',
+      couverture: couverture,
+      photos: photos,
+    };
+  }
+
   async function chargerAlbums(){
     const [racine, meta] = await Promise.all([chargerDossier(GITHUB_FOLDER), chargerMeta()]);
+
     const sousDossiers = racine.filter(f => f.type === "dir");
+    const fichiersRacine = racine.filter(f => f.type === "file" && estImage(f.name));
 
     const contenus = await Promise.all(sousDossiers.map(d => chargerDossier(d.path).catch(() => [])));
 
-    return sousDossiers.map(function(dossier, i){
-      const fichiers = contenus[i].filter(f => f.type === "file" && estImage(f.name));
-      const photos = fichiers.map(f => ({ name: f.name, url: f.download_url }));
-      const infos = meta[dossier.name] || {};
+    const albumsDossiers = sousDossiers
+      .map((dossier, i) => construireAlbum(dossier.name, dossier.path, contenus[i], meta))
+      .filter(album => album.photos.length > 0);
 
-      let couverture = photos[0] ? photos[0].url : '';
-      if(infos.couverture){
-        const trouvee = photos.find(p => p.name === infos.couverture);
-        if(trouvee) couverture = trouvee.url;
-      }
+    const albums = [...albumsDossiers];
 
-      return {
-        dossier: dossier.name,
-        categorie: infos.categorie || CATEGORIE_DEFAUT,
-        titre: infos.titre || prettifier(dossier.name),
-        description: infos.description || '',
-        couverture: couverture,
-        photos: photos,
-      };
-    }).filter(album => album.photos.length > 0);
+    // Photos posées directement dans "galerie" (sans sous-dossier) : un album dédié.
+    if(fichiersRacine.length > 0){
+      const albumRacine = construireAlbum(ALBUM_RACINE_CLE, null, fichiersRacine, meta);
+      albums.unshift(albumRacine);
+    }
+
+    return albums;
   }
 
   chargerAlbums()
