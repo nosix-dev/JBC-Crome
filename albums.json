@@ -1,6 +1,6 @@
 [
   {
-    "dossier": "convoi-jolie-camion",
+    "dossier": "jolie-camion",
     "categorie": "Beau Camion",
     "titre": "Les beaux camions de la J.B.C",
     "description": "Tous les beaux camions de la JBC CROME.",
@@ -9,7 +9,7 @@
   {
     "dossier": "galerie",
     "categorie": "Convoi",
-    "titre": "Beau Camion J.B.C",
+    "titre": "Photo Convoi J.B.C Crome",
     "description": "Toutes les photos de convoi de la J.B.C Crome.",
     "couverture": "photo1.jpg"
   }
