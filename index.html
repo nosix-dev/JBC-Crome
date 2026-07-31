@@ -18,6 +18,8 @@
     --arc-blue:#5fd1ff;
     --arc-blue-dim:#2e6b82;
     --shadow-hard: 0 20px 50px rgba(0,0,0,.55);
+    --evt-red:#c62828;
+    --evt-red-dark:#8f1c1c;
   }
 
   *{box-sizing:border-box; margin:0; padding:0;}
@@ -75,6 +77,74 @@
     background:var(--arc-blue); transition:width .25s ease;
   }
   nav a:hover::after, nav a.active::after{width:100%;}
+
+  /* ==== Bannière prochain événement ==== */
+  #next-event-banner{
+    position:relative;
+    z-index:40;
+    display:none;
+    align-items:center;
+    gap:22px;
+    padding:14px 6vw;
+    background:linear-gradient(90deg, var(--evt-red-dark), var(--evt-red) 60%, var(--evt-red-dark));
+    color:#fff;
+    flex-wrap:wrap;
+  }
+  #next-event-banner.visible{display:flex;}
+  #next-event-banner .neb-label{
+    font-family:'Oswald', sans-serif;
+    font-size:11px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    background:rgba(255,255,255,.15);
+    border:1px solid rgba(255,255,255,.3);
+    border-radius:20px;
+    padding:6px 14px;
+    flex-shrink:0;
+  }
+  #next-event-banner .neb-info{
+    flex:1;
+    min-width:200px;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  #next-event-banner .neb-title{
+    font-family:'Oswald', sans-serif;
+    font-size:15px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.3px;
+  }
+  #next-event-banner .neb-meta{
+    font-size:12.5px;
+    color:rgba(255,255,255,.85);
+  }
+  #next-event-banner .neb-countdown{
+    font-family:'Oswald', sans-serif;
+    font-size:13px;
+    letter-spacing:1px;
+    font-weight:600;
+    background:rgba(0,0,0,.2);
+    border-radius:6px;
+    padding:8px 14px;
+    text-align:center;
+    flex-shrink:0;
+    white-space:nowrap;
+  }
+  #next-event-banner .neb-btn{
+    flex-shrink:0;
+    font-size:12px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    font-weight:600;
+    background:#fff;
+    color:var(--evt-red);
+    padding:11px 22px;
+    border-radius:3px;
+    transition:transform .2s ease;
+  }
+  #next-event-banner .neb-btn:hover{transform:translateY(-2px);}
 
   .hero{
     position:relative;
@@ -409,6 +479,8 @@ footer{
     nav a{font-size:11px;}
     .plates{grid-template-columns:1fr;}
     .discord-band{flex-direction:column; text-align:center; align-items:center;}
+    #next-event-banner{padding:12px 5vw; gap:12px;}
+    #next-event-banner .neb-countdown{display:none;}
   }
 
   ::selection{background:var(--arc-blue); color:#0e0f12;}
@@ -507,6 +579,16 @@ footer{
     </ul>
   </nav>
 </header>
+
+<div id="next-event-banner">
+  <span class="neb-label">Prochain événement</span>
+  <div class="neb-info">
+    <span class="neb-title" id="neb-title"></span>
+    <span class="neb-meta" id="neb-meta"></span>
+  </div>
+  <span class="neb-countdown" id="neb-countdown"></span>
+  <a class="neb-btn" id="neb-btn" href="evenements.html">Voir l'événement</a>
+</div>
 
 <section class="hero">
   <div class="hero-stats" id="hero-stats">
@@ -712,6 +794,79 @@ footer{
       console.warn('[hero-stats] indisponibles :', err.message);
       if(bloc) bloc.style.display = 'none';
     });
+})();
+</script>
+
+<script>
+(function(){
+  // Réutilise le même events.json que la page evenements.html
+  const EVENTS_URL = 'events.json';
+  const banner = document.getElementById('next-event-banner');
+  if(!banner) return;
+
+  const titleEl = document.getElementById('neb-title');
+  const metaEl = document.getElementById('neb-meta');
+  const countdownEl = document.getElementById('neb-countdown');
+  const btnEl = document.getElementById('neb-btn');
+
+  const MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+
+  function formaterDate(d){
+    return d.getDate() + ' ' + MOIS[d.getMonth()] + ' ' + d.getFullYear();
+  }
+
+  function formaterCompteARebours(msRestant){
+    const jours = Math.floor(msRestant / (1000 * 60 * 60 * 24));
+    const heures = Math.floor((msRestant / (1000 * 60 * 60)) % 24);
+    if(jours > 0) return jours + ' j ' + heures + ' h';
+    const minutes = Math.floor((msRestant / (1000 * 60)) % 60);
+    if(heures > 0) return heures + ' h ' + minutes + ' min';
+    return Math.max(0, minutes) + ' min';
+  }
+
+  let evenementCible = null;
+
+  function majCompteARebours(){
+    if(!evenementCible) return;
+    const reste = new Date(evenementCible.date) - new Date();
+    if(reste <= 0){
+      countdownEl.textContent = 'En cours';
+      return;
+    }
+    countdownEl.textContent = formaterCompteARebours(reste);
+  }
+
+  async function chargerProchainEvenement(){
+    try{
+      const res = await fetch(EVENTS_URL, { cache: 'no-store' });
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const events = await res.json();
+      if(!Array.isArray(events)) return;
+
+      const maintenant = new Date();
+      const futurs = events
+        .filter(ev => ev && ev.date && !isNaN(new Date(ev.date)) && new Date(ev.date) > maintenant)
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      if(!futurs.length) return; // pas d'événement à venir : bannière reste masquée
+
+      evenementCible = futurs[0];
+      const d = new Date(evenementCible.date);
+
+      titleEl.textContent = evenementCible.titre || '';
+      metaEl.textContent = formaterDate(d) + (evenementCible.lieu ? ' — ' + evenementCible.lieu : '');
+      if(evenementCible.lien) btnEl.href = evenementCible.lien;
+
+      majCompteARebours();
+      setInterval(majCompteARebours, 60 * 1000);
+
+      banner.classList.add('visible');
+    }catch(err){
+      console.warn('[next-event-banner] Échec chargement events.json', err);
+    }
+  }
+
+  chargerProchainEvenement();
 })();
 </script>
 
