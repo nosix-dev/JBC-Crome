@@ -191,22 +191,32 @@
   }
   #lightbox.open{display:flex; opacity:1;}
   #lightbox img{
-    max-width:100%; max-height:82vh;
+    max-width:100%; max-height:76vh;
     border-radius:8px;
     box-shadow:0 30px 70px rgba(0,0,0,.6);
     transform:scale(.96);
     transition:transform .25s ease;
   }
   #lightbox.open img{transform:scale(1);}
-  #lightbox-caption{
+  #lightbox-info{
     margin-top:18px;
+    max-width:620px;
     text-align:center;
+  }
+  #lightbox-caption{
     color:var(--chrome-300);
     font-size:12px;
     letter-spacing:1px;
     text-transform:uppercase;
   }
   #lightbox-caption strong{color:var(--chrome-white);}
+  #lightbox-description{
+    margin-top:8px;
+    color:var(--chrome-100);
+    font-size:14px;
+    line-height:1.6;
+  }
+  #lightbox-description:empty{display:none;}
   #lightbox-close{
     position:absolute; top:26px; right:6vw;
     width:42px; height:42px;
@@ -241,6 +251,7 @@
     nav ul{gap:18px;}
     nav a{font-size:11px;}
     #lightbox-prev, #lightbox-next{width:38px; height:38px; font-size:18px;}
+    #lightbox-info{max-width:90vw;}
   }
 
   body.push-footer{display:flex; flex-direction:column; min-height:100vh;}
@@ -358,7 +369,10 @@
   <div id="lightbox-prev">‹</div>
   <img id="lightbox-img" src="" alt="Photo agrandie">
   <div id="lightbox-next">›</div>
-  <div id="lightbox-caption"></div>
+  <div id="lightbox-info">
+    <div id="lightbox-caption"></div>
+    <div id="lightbox-description"></div>
+  </div>
 </div>
 
 <script>
@@ -435,9 +449,10 @@
   //   sont regroupées automatiquement dans un album "Photos" (voir ALBUM_RACINE_*).
   const GITHUB_FOLDER = "galerie";
   // Fichier optionnel à la racine du repo pour donner un titre / une description /
-  // une catégorie à chaque album. Sans ce fichier (ou pour un dossier absent dedans),
-  // le nom du dossier est utilisé tel quel comme titre, catégorie "Convoi" par défaut,
-  // et aucune description n'est affichée.
+  // une catégorie à chaque album, ET une description par photo.
+  // Sans ce fichier (ou pour un dossier absent dedans), le nom du dossier est
+  // utilisé tel quel comme titre, catégorie "Convoi" par défaut, et aucune
+  // description n'est affichée (ni pour l'album, ni pour les photos).
   //
   // Format de albums.json :
   // [
@@ -446,7 +461,11 @@
   //     "categorie": "Convoi",
   //     "titre": "12th Anniversary TruckersMP - Convoi officiel",
   //     "description": "À l'occasion du 12ème anniversaire de TruckersMP...",
-  //     "couverture": "photo3.jpg"   // optionnel : sinon la 1ère photo du dossier sert de couverture
+  //     "couverture": "photo3.jpg",   // optionnel : sinon la 1ère photo du dossier sert de couverture
+  //     "photos": {                    // optionnel : description affichée dans la lightbox pour chaque photo
+  //       "photo1.jpg": "Départ du convoi devant le dépôt principal.",
+  //       "photo2.jpg": "Passage du péage avec toute la flotte."
+  //     }
   //   }
   // ]
   // Pour configurer l'album regroupant les photos à la racine, utilise la clé
@@ -461,6 +480,7 @@
   const lightbox = document.getElementById('lightbox');
   const lightboxImg = document.getElementById('lightbox-img');
   const lightboxCaption = document.getElementById('lightbox-caption');
+  const lightboxDescription = document.getElementById('lightbox-description');
   const btnClose = document.getElementById('lightbox-close');
   const btnPrev = document.getElementById('lightbox-prev');
   const btnNext = document.getElementById('lightbox-next');
@@ -500,6 +520,7 @@
     const photo = albumOuvert.photos[currentIndex];
     lightboxImg.src = photo.url;
     lightboxCaption.innerHTML = '<strong>' + albumOuvert.titre + '</strong> — ' + (currentIndex + 1) + ' / ' + albumOuvert.photos.length;
+    lightboxDescription.textContent = photo.description || '';
   }
 
   function fermerLightbox(){
@@ -581,8 +602,13 @@
 
   function construireAlbum(nomDossier, cheminAffichage, fichiers, meta){
     const photosImg = fichiers.filter(f => f.type === "file" && estImage(f.name));
-    const photos = photosImg.map(f => ({ name: f.name, url: f.download_url }));
     const infos = meta[nomDossier] || {};
+    const descriptionsPhotos = infos.photos || {};
+    const photos = photosImg.map(f => ({
+      name: f.name,
+      url: f.download_url,
+      description: descriptionsPhotos[f.name] || ''
+    }));
 
     let couverture = photos[0] ? photos[0].url : '';
     if(infos.couverture){
