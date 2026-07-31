@@ -1,0 +1,28 @@
+name: Notifier Discord
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'events.json'
+      - 'galerie/**'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Notifier Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/notify-discord.js "${{ github.event.before }}" "${{ github.event.after }}"
