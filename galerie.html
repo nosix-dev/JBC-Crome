@@ -543,6 +543,9 @@
   const GITHUB_REPO = "JBC-Crome";
   const GITHUB_BRANCH = "main";
   const GITHUB_FOLDER = "galerie";
+  // Sous-dossiers de "galerie" à ne PAS afficher comme albums (ex: un dossier
+  // qui sert uniquement à stocker des photos de couverture réutilisées ailleurs).
+  const DOSSIERS_MASQUES = ["couvertures"];
   const ALBUMS_META_URL = "albums.json";
   const CATEGORIE_DEFAUT = "Convoi";
   const ALBUM_RACINE_CLE = "_racine";
@@ -711,7 +714,7 @@
   async function chargerAlbums(){
     const [racine, meta] = await Promise.all([chargerDossier(GITHUB_FOLDER), chargerMeta()]);
 
-    const sousDossiers = racine.filter(f => f.type === "dir");
+    const sousDossiers = racine.filter(f => f.type === "dir" && !DOSSIERS_MASQUES.includes(f.name));
     const fichiersRacine = racine.filter(f => f.type === "file" && estImage(f.name));
 
     const contenus = await Promise.all(sousDossiers.map(d => chargerDossier(d.path).catch(() => [])));
