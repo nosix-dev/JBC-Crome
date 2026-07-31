@@ -684,8 +684,18 @@
 
     let couverture = photos[0] ? photos[0].url : '';
     if(infos.couverture){
+      // 1) si ça correspond au nom d'une photo déjà dans ce dossier, on la réutilise
       const trouvee = photos.find(p => p.name === infos.couverture);
-      if(trouvee) couverture = trouvee.url;
+      if(trouvee){
+        couverture = trouvee.url;
+      } else if(/^https?:\/\//i.test(infos.couverture)){
+        // 2) une URL complète vers une image (hébergée n'importe où)
+        couverture = infos.couverture;
+      } else {
+        // 3) un chemin dans le repo GitHub, sans que la photo soit dans le dossier de l'album
+        //    ex: "galerie/couvertures/image.jpg" ou "autre-dossier/photo.jpg"
+        couverture = "https://raw.githubusercontent.com/" + GITHUB_USER + "/" + GITHUB_REPO + "/" + GITHUB_BRANCH + "/" + infos.couverture.replace(/^\/+/, '');
+      }
     }
 
     return {
