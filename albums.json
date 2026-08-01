@@ -19,5 +19,12 @@
     "titre": "Photo Convoi J.B.C Crome 31/07/2026",
     "description": "Toutes les photos de convoi du 31/07/2026.",
     "couverture": "/galerie/couverture/image2.jpg"
+  },
+  {
+    "dossier": "convoi2",
+    "categorie": "1 Août 2026",
+    "titre": "Photo Convoi J.B.C Crome 01/08/2026",
+    "description": "Toutes les photos de convoi du 01/08/2026.",
+    "couverture": "/galerie/couverture/image2.jpg"
   }
 ]
