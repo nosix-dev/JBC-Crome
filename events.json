@@ -1,10 +1,11 @@
 [
   {
-    "date": "Samedi 12 Septembre",
-    "heure de rassemblement": "20h00",
-    "Heure de départ": "21h00",
-    "title": "Convoi de la J.B.C Crome",
+    "date": "2026-09-12",
+    "titre": "Convoi de la J.B.C Crome",
+    "lieu": "Calais → TruckersMP HQ",
     "description": [
+      "Heure de rassemblement : 20h00",
+      "Heure de départ : 21h00",
       "Départ Ville : Calais",
       "Entreprise : LKW",
       "Arrivée Ville : TruckersMP HQ",
@@ -13,6 +14,6 @@
       "Distance : 1 261 km (itinéraire le plus rapide)",
       "Serveur : Simulation 2"
     ],
-    "link": "https://truckersmp.com/events/37169-convoi-j.b.c-crome"
+    "lien": "https://truckersmp.com/events/37169-convoi-j.b.c-crome"
   }
 ]
