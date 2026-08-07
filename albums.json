@@ -33,5 +33,12 @@
     "titre": "Photo Convoi J.B.C Crome 06/08/2026",
     "description": "Toutes les photos de convoi du 06/08/2026.",
     "couverture": "/galerie/couverture/image2.jpg"
+  },
+  {
+    "dossier": "camion-société",
+    "categorie": "Camion Société 🚚",
+    "titre": "Photo Des Camion De La J.B.C Crome",
+    "description": "Toutes les photos des camion.",
+    "couverture": "/galerie/couverture/image2.jpg"
   }
 ]
