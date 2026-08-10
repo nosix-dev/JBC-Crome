@@ -1,5 +1,5 @@
 // team-api.js
-// Module qui expose GET /api/team et GET /api/stats pour le site J.B.C Crome,
+// Module qui expose GET /api/team, GET /api/stats et GET /api/classement pour le site J.B.C Crome,
 // exposé en HTTPS via un tunnel ngrok (domaine gratuit fixe, binaire officiel
 // piloté directement, sans wrapper npm tiers).
 //
@@ -61,14 +61,21 @@ function chargerDonneesBot() {
 
 const CACHE_MS = 60 * 1000;
 const MEMBERS_CACHE_MS = 5 * 60 * 1000;
+// Après un échec (ex: rate limit gateway), on ne retente pas avant ce délai,
+// pour ne pas marteler Discord à chaque appel HTTP reçu entre-temps.
+const MEMBERS_RETRY_COOLDOWN_MS = 60 * 1000;
 let membersCache = null;
 let membersCacheTime = 0;
 let membersFetchPromise = null;
+let lastMembersFetchError = null;
+let lastMembersFetchErrorTime = 0;
 
 let cache = null;
 let cacheTime = 0;
 let cacheStats = null;
 let cacheStatsTime = 0;
+let cacheClassement = null;
+let cacheClassementTime = 0;
 let started = false;
 
 async function getGuildMembers(guild) {
@@ -77,21 +84,37 @@ async function getGuildMembers(guild) {
     return membersCache;
   }
 
+  // Un fetch a échoué récemment : on n'en relance pas un nouveau tout de
+  // suite. On sert le cache périmé s'il existe (mieux qu'une erreur 500),
+  // sinon on renvoie la même erreur sans re-solliciter le gateway Discord.
+  if (lastMembersFetchError && now - lastMembersFetchErrorTime < MEMBERS_RETRY_COOLDOWN_MS) {
+    if (membersCache) return membersCache;
+    throw lastMembersFetchError;
+  }
+
   if (!membersFetchPromise) {
+    // Un seul .finally() sur LA MÊME chaîne que celle qu'on stocke et qu'on
+    // retourne : si guild.members.fetch() échoue (ex: rate limit gateway),
+    // le rejet remonte à l'appelant (qui l'awaite dans un try/catch) au lieu
+    // de rejeter une promesse fantôme non gérée (ce qui plantait tout le
+    // process en unhandled rejection).
     membersFetchPromise = guild.members.fetch()
       .then((members) => {
         membersCache = members;
         membersCacheTime = Date.now();
+        lastMembersFetchError = null;
         return members;
       })
       .catch((err) => {
-        membersFetchPromise = null;
+        lastMembersFetchError = err;
+        lastMembersFetchErrorTime = Date.now();
+        // Un cache périmé vaut mieux qu'une route en erreur.
+        if (membersCache) return membersCache;
         throw err;
+      })
+      .finally(() => {
+        membersFetchPromise = null;
       });
-
-    membersFetchPromise.finally(() => {
-      membersFetchPromise = null;
-    });
   }
 
   return membersFetchPromise;
@@ -163,6 +186,55 @@ async function getStatsData(client) {
   return cacheStats;
 }
 
+// ==== CLASSEMENT (top km / missions / convois par chauffeur) ====
+// Lit botData.guilds[guildId].chauffeurs[userId] = { km, missions, convois }
+function construireTop(entries, champ, limite = 5) {
+  return entries
+    .filter((e) => (e[champ] || 0) > 0)
+    .slice()
+    .sort((a, b) => (b[champ] || 0) - (a[champ] || 0))
+    .slice(0, limite)
+    .map((e, i) => ({ rang: i + 1, pseudo: e.pseudo, valeur: e[champ] || 0 }));
+}
+
+async function buildClassementData(client) {
+  const guild = resoudreGuild(client);
+  if (!guild) throw new Error("Aucun serveur Discord disponible pour le bot.");
+
+  const members = await getGuildMembers(guild);
+  const botData = chargerDonneesBot();
+  const guildData = (botData.guilds && botData.guilds[guild.id]) || {};
+  const chauffeurs = guildData.chauffeurs || {};
+
+  const entries = Object.entries(chauffeurs).map(([userId, stats]) => {
+    const membre = members.get(userId);
+    const pseudo = membre ? (membre.displayName || membre.user.username) : `Utilisateur ${userId}`;
+    return {
+      userId,
+      pseudo,
+      km: (stats && stats.km) || 0,
+      missions: (stats && stats.missions) || 0,
+      convois: (stats && stats.convois) || 0,
+    };
+  });
+
+  return {
+    updatedAt: new Date().toISOString(),
+    top_km: construireTop(entries, "km"),
+    top_missions: construireTop(entries, "missions"),
+    top_convois: construireTop(entries, "convois"),
+  };
+}
+
+async function getClassementData(client) {
+  const now = Date.now();
+  if (cacheClassement && now - cacheClassementTime < CACHE_MS) return cacheClassement;
+  cacheClassement = await buildClassementData(client);
+  cacheClassementTime = now;
+  return cacheClassement;
+}
+// ==================================================================
+
 function telechargerFichier(url, destPath, redirectsRestants = 5) {
   return new Promise((resolve, reject) => {
     https.get(url, { headers: { "User-Agent": "team-api-script" } }, (res) => {
@@ -231,9 +303,10 @@ async function ouvrirTunnelNgrok(port) {
     if (!annonce && /started tunnel|client session established/i.test(text)) {
       annonce = true;
       console.log(`[team-api] tunnel ngrok actif : https://${NGROK_DOMAIN}`);
-      console.log(`[team-api] ⚠️ mets à jour index.html avec :`);
-      console.log(`[team-api]    - TEAM_API_URL  = https://${NGROK_DOMAIN}/api/team`);
-      console.log(`[team-api]    - STATS_API_URL = https://${NGROK_DOMAIN}/api/stats`);
+      console.log(`[team-api] ⚠️ mets à jour les pages du site avec :`);
+      console.log(`[team-api]    - TEAM_API_URL       = https://${NGROK_DOMAIN}/api/team`);
+      console.log(`[team-api]    - STATS_API_URL      = https://${NGROK_DOMAIN}/api/stats`);
+      console.log(`[team-api]    - CLASSEMENT_API_URL = https://${NGROK_DOMAIN}/api/classement`);
     }
   };
 
@@ -278,6 +351,16 @@ function startTeamApi(client, options = {}) {
       res.json(data);
     } catch (err) {
       console.error("[team-api] erreur stats:", err);
+      res.status(500).json({ error: "internal_error" });
+    }
+  });
+
+  app.get("/api/classement", async (req, res) => {
+    try {
+      const data = await getClassementData(client);
+      res.json(data);
+    } catch (err) {
+      console.error("[team-api] erreur classement:", err);
       res.status(500).json({ error: "internal_error" });
     }
   });
