@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Galerie J.B.C Crome</title>
+<title>Discord J.B.C Crome</title>
 <link rel="icon" type="image/png" href="LogoV3.png">
+<link rel="stylesheet" href="styles-theme.css">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Anton&family=Work+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
 
@@ -29,8 +30,8 @@
 
   body{
     background:
-      radial-gradient(ellipse at 15% -10%, #12233a 0%, transparent 55%),
-      radial-gradient(ellipse at 85% 110%, #0b1726 0%, transparent 55%),
+      radial-gradient(ellipse at 15% -10%, #221d18 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 110%, #1a1613 0%, transparent 55%),
       var(--asphalt);
     color:var(--chrome-2);
     font-family:'Work Sans', sans-serif;
@@ -51,8 +52,8 @@
     position:sticky; top:0; z-index:50;
     display:flex; align-items:center; justify-content:space-between;
     padding:18px 6vw;
-    background:linear-gradient(180deg, rgba(7,17,29,.96), rgba(7,17,29,.86));
-    backdrop-filter:blur(14px);
+    background:linear-gradient(180deg, rgba(19,17,16,.94), rgba(19,17,16,.78));
+    backdrop-filter:blur(10px);
     border-bottom:1px solid var(--hairline);
   }
   .logo{
@@ -60,7 +61,7 @@
     font-size:22px;
     letter-spacing:2px;
     text-transform:uppercase;
-    background:linear-gradient(90deg, #ffffff 0%, #dce8f6 35%, #8db7eb 60%, #ffffff 100%);
+    background:linear-gradient(180deg, #fff 0%, #e8e0d2 40%, #8a7f70 50%, #f3ede1 62%, #fff 100%);
     -webkit-background-clip:text; background-clip:text; color:transparent;
   }
   .logo::after{
@@ -84,12 +85,119 @@
   }
   nav a:hover, nav a.active{
     color:var(--chrome-1);
-    background:rgba(93,168,255,.12);
-    border-color:rgba(93,168,255,.28);
+    background:rgba(255,138,30,.08);
+    border-color:rgba(255,138,30,.25);
   }
   nav a:hover::before, nav a.active::before{
     background:var(--amber); box-shadow:0 0 8px var(--amber-glow);
   }
+
+  #next-event-banner{
+    position:relative; z-index:40; display:none;
+    align-items:center; gap:22px;
+    padding:13px 6vw;
+    background:
+      repeating-linear-gradient(135deg, rgba(0,0,0,.18) 0 10px, transparent 10px 20px),
+      linear-gradient(90deg, var(--safety-red-dark), var(--safety-red) 60%, var(--safety-red-dark));
+    color:#fff5ee;
+    flex-wrap:wrap;
+    border-bottom:1px solid rgba(0,0,0,.3);
+  }
+  #next-event-banner.visible{display:flex;}
+  #next-event-banner .neb-label{
+    font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase;
+    background:rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.3);
+    border-radius:3px; padding:6px 12px; flex-shrink:0;
+  }
+  #next-event-banner .neb-info{flex:1; min-width:200px; display:flex; flex-direction:column; gap:2px;}
+  #next-event-banner .neb-title{font-family:'Anton', sans-serif; font-size:16px; text-transform:uppercase; letter-spacing:.3px;}
+  #next-event-banner .neb-meta{font-size:12.5px; color:rgba(255,255,255,.85); font-family:'Space Mono', monospace;}
+  #next-event-banner .neb-countdown{
+    font-family:'Space Mono', monospace; font-size:13px; font-weight:700;
+    background:rgba(0,0,0,.28); border-radius:4px; padding:8px 14px; text-align:center; flex-shrink:0; white-space:nowrap;
+  }
+  #next-event-banner .neb-btn{
+    flex-shrink:0; font-size:12px; letter-spacing:1px; text-transform:uppercase; font-weight:700;
+    background:#fff5ee; color:var(--safety-red-dark); padding:11px 22px; border-radius:3px;
+    transition:transform .2s ease;
+  }
+  #next-event-banner .neb-btn:hover{transform:translateY(-2px);}
+
+  .hero{
+    position:relative; min-height:90vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:0 6vw; z-index:2;
+  }
+  .hero-stats{display:flex; align-items:stretch; justify-content:center; gap:0; margin-bottom:38px; opacity:0; animation:riseIn .8s ease forwards 0s;}
+  .hero-stat{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:16px 30px; min-width:100px;
+    background:var(--panel-2);
+    border:1px solid var(--hairline);
+    border-radius:6px;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.04);
+  }
+  .hero-stat-value{
+    font-family:'Space Mono', monospace; font-weight:700;
+    font-size:clamp(20px,2.6vw,28px); letter-spacing:1px;
+    color:var(--chrome-1);
+    text-shadow:0 0 14px var(--amber-glow);
+    font-variant-numeric:tabular-nums;
+  }
+  .hero-stat-label{margin-top:9px; font-size:9.5px; letter-spacing:2px; text-transform:uppercase; color:var(--amber);}
+  .hero-stat-sep{width:14px; display:flex; align-items:center; justify-content:center;}
+  .hero-stat-sep::after{content:""; width:4px; height:4px; border-radius:50%; background:var(--chrome-3);}
+  @media (max-width:600px){ .hero-stat{padding:14px 16px; min-width:0;} }
+
+  .hero-eyebrow{
+    font-family:'Space Mono', monospace;
+    font-size:11.5px; letter-spacing:3px; text-transform:uppercase;
+    color:var(--amber); font-weight:700; margin-bottom:24px;
+    opacity:0; animation:riseIn .8s ease forwards .1s;
+  }
+  .hero h1{
+    font-family:'Anton', sans-serif;
+    font-size:clamp(52px, 11vw, 138px);
+    line-height:.9; letter-spacing:1px; text-transform:uppercase;
+    background:linear-gradient(180deg,
+      #fffaf2 0%, #ece2d0 14%, #a89c8a 30%, #5c5346 46%,
+      #f6efe2 52%, #cfc3af 60%, #857a68 74%, #f0e7d8 88%, #fffaf2 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    background-size:100% 220%;
+    animation:chromeSheen 8s ease-in-out infinite, riseIn .9s ease forwards .25s;
+    opacity:0;
+    filter:drop-shadow(0 8px 24px rgba(0,0,0,.6));
+  }
+  .hero h1 span{display:block;}
+  @keyframes chromeSheen{0%,100%{background-position:0% 0%;} 50%{background-position:0% 100%;}}
+  @keyframes riseIn{from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);}}
+  .hero p.tag{margin-top:24px; max-width:560px; font-size:16px; line-height:1.6; color:var(--chrome-3); opacity:0; animation:riseIn .8s ease forwards .45s;}
+  .hero-cta{margin-top:42px; display:flex; gap:16px; flex-wrap:wrap; justify-content:center; opacity:0; animation:riseIn .8s ease forwards .6s;}
+
+  .btn{
+    display:inline-flex; align-items:center; gap:10px;
+    padding:15px 30px; font-size:13px; letter-spacing:1.5px; text-transform:uppercase; font-weight:700;
+    border-radius:3px; cursor:pointer; border:none; font-family:'Work Sans', sans-serif;
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .btn:hover{transform:translateY(-2px);}
+  .btn-chrome{
+    background:linear-gradient(180deg,#fbf7ef 0%, #d6cdbe 45%, #8a7f70 50%, #e5dccb 60%, #fbf7ef 100%);
+    color:#171310; box-shadow:0 14px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.8);
+  }
+  .btn-chrome:hover{box-shadow:0 18px 40px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.9);}
+  .btn-discord{
+    background:linear-gradient(180deg, #6c81ff 0%, #4a5ce0 100%); color:#fff;
+    box-shadow:0 14px 30px rgba(74,92,224,.35), inset 0 1px 0 rgba(255,255,255,.35);
+  }
+  .btn-discord:hover{box-shadow:0 18px 40px rgba(74,92,224,.5), inset 0 1px 0 rgba(255,255,255,.4);}
+  .btn-ghost{background:transparent; color:var(--chrome-2); border:1px solid rgba(255,138,30,.35);}
+  .btn-ghost:hover{border-color:var(--amber); color:var(--amber);}
+  .btn-truckbook{
+    background:linear-gradient(180deg, #ffb04c 0%, #e08a1e 100%); color:#1a1200;
+    box-shadow:0 14px 30px rgba(224,138,30,.35), inset 0 1px 0 rgba(255,255,255,.35);
+  }
+  .btn-truckbook:hover{box-shadow:0 18px 40px rgba(224,138,30,.5), inset 0 1px 0 rgba(255,255,255,.4);}
 
   section{position:relative; z-index:2; padding:100px 6vw; scroll-margin-top:90px;}
   .section-head{max-width:640px; margin-bottom:52px;}
@@ -104,40 +212,137 @@
   }
   .section-head p{margin-top:14px; color:var(--chrome-3); line-height:1.7; font-size:15px;}
 
-  
-  .albums-grid{
-    display:flex; gap:0; overflow-x:auto; padding:8px 0 26px; scroll-snap-type:x proximity;
-    -webkit-overflow-scrolling:touch;
+  .plates{display:grid; grid-template-columns:repeat(2,1fr); gap:20px; max-width:760px;}
+  .plate{
+    background:linear-gradient(160deg, var(--panel-2), var(--panel));
+    border:1px solid var(--hairline); border-radius:6px; padding:30px 26px;
+    position:relative; transition:transform .25s ease, border-color .25s ease;
   }
-  .albums-grid::-webkit-scrollbar{height:6px;}
-  .albums-grid::-webkit-scrollbar-track{background:rgba(255,255,255,.04); border-radius:3px;}
-  .albums-grid::-webkit-scrollbar-thumb{background:var(--amber-dim); border-radius:3px;}
-  .filmstrip-card{
-    flex:0 0 290px; scroll-snap-align:start; margin-right:22px;
-    background:#0c0b0a; border-radius:5px; padding:16px 14px 14px; position:relative; cursor:pointer;
-    transition:transform .25s ease, box-shadow .25s ease;
+  .plate::before, .plate::after{
+    content:""; position:absolute; top:12px; width:6px; height:6px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #6b6156, #2b2620);
+    box-shadow:inset 0 1px 1px rgba(0,0,0,.6);
   }
-  .filmstrip-card:last-child{margin-right:0;}
-  .filmstrip-card:hover{transform:translateY(-7px); box-shadow:var(--shadow-hard);}
-  .filmstrip-card::before, .filmstrip-card::after{
-    content:""; position:absolute; left:0; right:0; height:13px;
-    background-image:radial-gradient(circle, var(--asphalt) 3px, transparent 3.2px);
-    background-size:18px 13px; background-repeat:repeat-x; background-position:7px center;
-  }
-  .filmstrip-card::before{top:0;} .filmstrip-card::after{bottom:0;}
-  .filmstrip-frame-num{font-family:'Space Mono', monospace; font-size:10px; letter-spacing:1.5px; color:var(--chrome-3); padding-top:6px;}
-  .filmstrip-photo{
-    aspect-ratio:3/2; margin:12px 0; background-size:cover; background-position:center;
-    filter:grayscale(.12) contrast(1.06) saturate(1.05); border:1px solid rgba(255,255,255,.06);
-  }
-  .filmstrip-title{font-family:'Anton', sans-serif; font-size:15.5px; text-transform:uppercase; color:var(--chrome-1); line-height:1.25;}
-  .led-desc{font-size:12.5px; color:var(--chrome-3); margin-top:9px; line-height:1.55; display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
-  .filmstrip-meta{
-    display:flex; justify-content:space-between; margin-top:12px; padding-bottom:4px;
-    font-family:'Space Mono', monospace; font-size:9.5px; letter-spacing:1px; text-transform:uppercase; color:var(--amber); font-weight:700;
-  }
-  .filmstrip-hint{font-family:'Space Mono', monospace; font-size:11px; letter-spacing:1px; color:var(--chrome-3); margin-bottom:14px; display:block;}
+  .plate::before{left:12px;} .plate::after{right:12px;}
+  .plate:hover{transform:translateY(-5px); border-color:rgba(255,138,30,.3);}
+  .plate .num{font-family:'Space Mono', monospace; font-size:12px; color:var(--amber); letter-spacing:2px; margin-bottom:16px; display:block;}
+  .plate h3{font-family:'Anton', sans-serif; font-size:19px; text-transform:uppercase; letter-spacing:.5px; margin-bottom:10px; color:var(--chrome-1);}
+  .plate p{color:var(--chrome-3); font-size:14px; line-height:1.65;}
 
+  .discord-band{
+    background:linear-gradient(135deg, #241c14 0%, #2c2117 45%, #1a140e 100%);
+    border-radius:10px; padding:60px 6vw;
+    display:flex; align-items:center; justify-content:space-between; gap:36px; flex-wrap:wrap;
+    border:1px solid rgba(255,138,30,.22); box-shadow:var(--shadow-hard);
+  }
+  .discord-band h2{font-family:'Anton', sans-serif; font-size:clamp(26px,3.8vw,42px); text-transform:uppercase; color:#fff5ea; max-width:480px; line-height:1.12;}
+  .discord-band p{color:var(--chrome-3); margin-top:12px; max-width:420px; font-size:14px; line-height:1.6;}
+  .discord-layout{display:flex; gap:26px; flex-wrap:wrap; align-items:stretch;}
+  .discord-layout .discord-band{flex:1 1 420px;}
+  .discord-widget{flex:0 0 auto; display:flex; align-items:center; justify-content:center;}
+  .discord-widget iframe{border-radius:10px; box-shadow:var(--shadow-hard); max-width:100%;}
+  @media (max-width:900px){ .discord-layout{flex-direction:column;} .discord-widget{width:100%;} .discord-widget iframe{width:100%;} }
+
+  .empty-state, .loading-state{
+    grid-column:1/-1; text-align:center; padding:56px 20px; color:var(--chrome-3);
+    border:1px dashed rgba(255,255,255,.14); border-radius:8px; font-size:14px;
+  }
+  .sync-status{font-size:11px; letter-spacing:.5px; color:var(--chrome-3); display:inline-flex; align-items:center; gap:6px; font-family:'Space Mono', monospace;}
+  .sync-status::before{content:""; width:6px; height:6px; border-radius:50%; background:#888; flex-shrink:0;}
+  .sync-status.live::before{background:#68d97a; box-shadow:0 0 8px #68d97a;}
+  .sync-status.offline::before{background:#e05c4d;}
+
+  .team-role{margin-bottom:40px;} .team-role:last-child{margin-bottom:0;}
+  .role-title{
+    font-family:'Anton', sans-serif; font-size:15px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--amber); margin-bottom:16px; display:flex; align-items:center; gap:12px;
+  }
+  .role-title::after{content:""; flex:1; height:1px; background:linear-gradient(90deg, rgba(255,138,30,.3), transparent);}
+  .team-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:14px;}
+  .team-card{
+    display:flex; flex-direction:column; align-items:flex-start; text-align:left; gap:10px;
+    background:linear-gradient(160deg, var(--panel-2), var(--panel));
+    border:1px solid var(--hairline); border-radius:6px; padding:16px 18px;
+    transition:transform .22s ease, border-color .22s ease;
+  }
+  .team-card:hover{transform:translateY(-3px); border-color:rgba(255,138,30,.3);}
+  .team-card .avatar{
+    width:38px; height:38px; border-radius:50%; object-fit:cover;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Mono', monospace; font-size:12px; font-weight:700; letter-spacing:.5px;
+    background:linear-gradient(180deg,#fbf7ef 0%, #d6cdbe 45%, #8a7f70 50%, #e5dccb 60%, #fbf7ef 100%);
+    color:#171310;
+  }
+  .team-card .pseudo{display:block; font-size:14px; font-weight:600; color:var(--chrome-1);}
+  .team-card .role{display:block; font-size:10.5px; letter-spacing:.5px; text-transform:uppercase; color:var(--chrome-3);}
+
+  .month-group{margin-bottom:52px;} .month-group:last-child{margin-bottom:0;}
+  .month-title{font-family:'Anton', sans-serif; font-size:clamp(22px,3.2vw,32px); color:var(--chrome-1); text-transform:uppercase; margin-bottom:12px;}
+  .month-divider{width:100%; height:2px; background:linear-gradient(90deg, var(--amber), rgba(255,138,30,.1)); margin-bottom:26px;}
+  .event-row{
+    display:flex; background:linear-gradient(160deg, var(--panel-2), var(--panel));
+    border:1px solid var(--hairline); border-radius:8px; overflow:hidden; margin-bottom:20px;
+    transition:transform .25s ease, border-color .25s ease;
+  }
+  .event-row:last-child{margin-bottom:0;}
+  .event-row:hover{transform:translateY(-4px); border-color:rgba(201,58,46,.45);}
+  .event-badge{
+    flex-shrink:0; width:104px;
+    background:
+      repeating-linear-gradient(135deg, rgba(0,0,0,.15) 0 8px, transparent 8px 16px),
+      linear-gradient(160deg, var(--safety-red), var(--safety-red-dark));
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    color:#fff5ee; text-align:center; border-right:3px solid rgba(0,0,0,.25);
+  }
+  .event-badge .day{font-family:'Anton', sans-serif; font-size:36px; line-height:1;}
+  .event-badge .month{font-family:'Space Mono', monospace; font-size:10px; letter-spacing:2px; margin-top:8px; text-transform:uppercase; opacity:.9;}
+  .event-content{flex:1; padding:22px 26px; display:flex; flex-direction:column; justify-content:center; gap:8px; min-width:0;}
+  .event-tag{
+    align-self:flex-start; font-family:'Space Mono', monospace;
+    font-size:10.5px; letter-spacing:1px; text-transform:uppercase; font-weight:700;
+    color:var(--amber); background:rgba(255,138,30,.08); border:1px solid rgba(255,138,30,.3);
+    border-radius:20px; padding:5px 13px;
+  }
+  .event-content h3{font-family:'Anton', sans-serif; font-size:clamp(16px,1.9vw,20px); text-transform:uppercase; color:var(--chrome-1); letter-spacing:.3px; line-height:1.3;}
+  .event-location{font-size:13px; color:var(--chrome-3); display:flex; align-items:center; gap:6px;}
+  .event-desc{font-size:14px; color:var(--chrome-3); line-height:1.6;}
+  .event-desc-list{list-style:none; font-size:14px; color:var(--chrome-3); line-height:1.7;}
+  .event-desc-list li{padding-left:16px; position:relative;}
+  .event-desc-list li::before{content:"›"; position:absolute; left:0; color:var(--amber);}
+  .event-image{flex-shrink:0; width:270px; position:relative; background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center;}
+  .event-image::before{content:""; position:absolute; inset:0; background:linear-gradient(90deg, rgba(19,17,16,.55) 0%, rgba(19,17,16,0) 45%);}
+  .event-image.no-image{background:linear-gradient(160deg, var(--panel), var(--asphalt));}
+  .event-arrow{
+    position:relative; z-index:2; width:50px; height:50px; border-radius:50%;
+    background:var(--amber); color:#1a1200; display:flex; align-items:center; justify-content:center;
+    font-size:22px; transition:transform .2s ease;
+  }
+  .event-arrow:hover{transform:scale(1.08);}
+
+  .albums-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:24px;}
+  .album-card{
+    background:linear-gradient(160deg, var(--panel-2), var(--panel));
+    border:1px solid var(--hairline); border-radius:10px; overflow:hidden; cursor:pointer;
+    transition:transform .25s ease, border-color .25s ease;
+  }
+  .album-card:hover{transform:translateY(-5px); border-color:rgba(255,138,30,.35);}
+  .album-cover{position:relative; aspect-ratio:16/10.5; background-size:cover; background-position:center;}
+  .album-cover-overlay{
+    position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end; padding:18px 20px;
+    background:linear-gradient(180deg, rgba(19,17,16,0) 35%, rgba(19,17,16,.55) 70%, rgba(19,17,16,.92) 100%);
+  }
+  .album-category{font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:2px; text-transform:uppercase; font-weight:700; color:var(--amber); margin-bottom:6px;}
+  .album-title{font-family:'Anton', sans-serif; font-size:18px; line-height:1.25; text-transform:uppercase; letter-spacing:.4px; color:var(--chrome-1);}
+  .album-body{padding:18px 20px 20px; display:flex; flex-direction:column; gap:14px;}
+  .album-body p{color:var(--chrome-3); font-size:13.5px; line-height:1.6; display:-webkit-box; -webkit-box-orient:vertical; line-clamp:3; -webkit-line-clamp:3; overflow:hidden;}
+  .album-footer{display:flex; justify-content:flex-end;}
+  .album-count-pill{
+    display:inline-flex; align-items:center; gap:8px; font-family:'Space Mono', monospace;
+    font-size:10.5px; letter-spacing:1px; text-transform:uppercase; font-weight:700; color:var(--chrome-1);
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.14); border-radius:30px; padding:8px 16px;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .album-card:hover .album-count-pill{border-color:rgba(255,138,30,.5); background:rgba(255,138,30,.1); color:var(--amber);}
 
   #lightbox{
     position:fixed; inset:0; z-index:200; background:rgba(8,7,6,.94); backdrop-filter:blur(6px);
@@ -154,18 +359,13 @@
   #lightbox-description:empty{display:none;}
   #lightbox-close, #lightbox-prev, #lightbox-next{
     position:absolute; border-radius:50%; background:rgba(255,255,255,.06);
-    border:1px solid rgba(93,168,255,.25); color:var(--chrome-1);
+    border:1px solid rgba(255,138,30,.25); color:var(--chrome-1);
     display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background .2s ease, border-color .2s ease;
   }
-  #lightbox-close:hover, #lightbox-prev:hover, #lightbox-next:hover{background:rgba(93,168,255,.14); border-color:var(--amber);}
+  #lightbox-close:hover, #lightbox-prev:hover, #lightbox-next:hover{background:rgba(255,138,30,.14); border-color:var(--amber);}
   #lightbox-close{top:26px; right:6vw; width:42px; height:42px; font-size:20px;}
   #lightbox-prev, #lightbox-next{top:50%; transform:translateY(-50%); width:48px; height:48px; font-size:22px;}
   #lightbox-prev{left:4vw;} #lightbox-next{right:4vw;}
-
-  .empty-state, .loading-state{
-    grid-column:1/-1; text-align:center; padding:56px 20px; color:var(--chrome-3);
-    border:1px dashed rgba(255,255,255,.14); border-radius:8px; font-size:14px;
-  }
 
   footer{
     padding:24px 6vw 20px; border-top:1px solid var(--hairline);
@@ -178,7 +378,15 @@
 
   @media (max-width:760px){
     header{padding:16px 5vw;} nav ul{gap:6px;} nav a{font-size:10.5px; padding:7px 10px;}
+    .plates{grid-template-columns:1fr;} .discord-band{flex-direction:column; text-align:center; align-items:center;}
+    #next-event-banner{padding:12px 5vw; gap:12px;} #next-event-banner .neb-countdown{display:none;}
+    .event-row{flex-direction:column;}
+    .event-badge{width:100%; flex-direction:row; justify-content:flex-start; gap:12px; padding:14px 20px; border-right:none; border-bottom:3px solid rgba(0,0,0,.25);}
+    .event-badge .day{font-size:26px;}
+    .event-image{width:100%; height:170px;}
   }
+
+  #particles{position:fixed; inset:0; z-index:0; pointer-events:none; width:100%; height:100%;}
 
   #preloader{
     position:fixed; inset:0; z-index:999; background:var(--asphalt);
@@ -210,6 +418,8 @@
   <div class="preloader-status" id="preloader-status">Chargement du site…</div>
 </div>
 
+<canvas id="particles"></canvas>
+
 <header>
   <a href="index.html" class="logo">J.B.C&nbsp;CROME</a>
   <nav>
@@ -218,35 +428,27 @@
       <li><a href="apropos.html">A propos</a></li>
       <li><a href="equipe.html">Équipe</a></li>
       <li><a href="evenements.html">Événements</a></li>
-      <li><a href="galerie.html" class="active">Galerie</a></li>
-      <li><a href="discord.html">Discord</a></li>
-    </ul>
+      <li><a href="galerie.html">Galerie</a></li>
+      <li><a href="discord.html" class="active">Discord</a></li>      <li><a href="classement.html">Classement</a></li>    </ul>
   </nav>
 </header>
 
-<section id="galerie">
-  <div class="section-head">
-    <span class="eyebrow">Souvenirs de la route</span>
-    <h2>La galerie</h2>
-    <p>Une sélection de photos de convois et de la flotte J.B.C Crome — clique sur un album pour l'ouvrir.</p>
-  </div>
-
-  <span class="filmstrip-hint">← Fais glisser pour parcourir la pellicule →</span>
-  <div id="albums-grid" class="albums-grid">
-    <div class="loading-state">Chargement des albums…</div>
+<section id="discord">
+  <div class="discord-layout">
+    <div class="discord-band">
+      <div>
+        <h2>Rejoins le convoi</h2>
+        <p>Clique pour accéder au Discord de la société J.B.C Crome et retrouver les autres routiers.</p>
+      </div>
+      <a href="https://discord.gg/4vHDSQBEhw" target="_blank" rel="noopener" class="btn btn-chrome" style="font-size:15px; padding:18px 38px;">
+        Rejoindre → discord.gg/4vHDSQBEhw
+      </a>
+    </div>
+    <div class="discord-widget">
+      <iframe src="https://discord.com/widget?id=1492875979142598716&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+    </div>
   </div>
 </section>
-
-<div id="lightbox">
-  <div id="lightbox-close">✕</div>
-  <div id="lightbox-prev">‹</div>
-  <img id="lightbox-img" src="" alt="Photo agrandie">
-  <div id="lightbox-next">›</div>
-  <div id="lightbox-info">
-    <div id="lightbox-caption"></div>
-    <div id="lightbox-description"></div>
-  </div>
-</div>
 
 <footer>
   <span>J.B.C Crome — société de transport virtuelle ETS2 / TruckersMP</span>
@@ -266,6 +468,7 @@
   setTimeout(forceScrollTop, 350);
 })();
 </script>
+
 
 <script>
 (function(){
@@ -329,202 +532,79 @@
 })();
 </script>
 
+
 <script>
 (function(){
-  const GITHUB_USER = "nosix-dev";
-  const GITHUB_REPO = "JBC-Crome";
-  const GITHUB_BRANCH = "main";
-  const GITHUB_FOLDER = "galerie";
-  const DOSSIERS_MASQUES = ["couverture"];
-  const ALBUMS_META_URL = "albums.json";
-  const CATEGORIE_DEFAUT = "Convoi";
-  const ALBUM_RACINE_CLE = "_racine";
-  const ALBUM_RACINE_TITRE = "Photos";
+  const canvas = document.getElementById('particles');
+  if(!canvas) return;
 
-  const grid = document.getElementById('albums-grid');
-  const lightbox = document.getElementById('lightbox');
-  const lightboxImg = document.getElementById('lightbox-img');
-  const lightboxCaption = document.getElementById('lightbox-caption');
-  const lightboxDescription = document.getElementById('lightbox-description');
-  const btnClose = document.getElementById('lightbox-close');
-  const btnPrev = document.getElementById('lightbox-prev');
-  const btnNext = document.getElementById('lightbox-next');
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(prefersReducedMotion) return;
 
-  let albums = [];
-  let albumOuvert = null;
-  let currentIndex = 0;
+  const ctx = canvas.getContext('2d');
+  let width, height, particles;
 
-  function estImage(nom){
-    return /\.(jpe?g|png|webp|gif)$/i.test(nom);
+  const DENSITE = 16000;
+  const RAYON_LIEN = 130;
+
+  function redimensionner(){
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+    const nb = Math.min(70, Math.round((width * height) / DENSITE));
+    particles = Array.from({ length: nb }, creerParticule);
   }
 
-  function prettifier(nomDossier){
-    return nomDossier
-      .replace(/[-_]+/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .replace(/\b\w/g, c => c.toUpperCase());
-  }
-
-  function afficherErreur(){
-    grid.innerHTML = '<div class="empty-state">Impossible de charger la galerie pour le moment. Réessaie plus tard.</div>';
-  }
-
-  function afficherVide(){
-    grid.innerHTML = '<div class="empty-state">Aucun album pour le moment. Ajoute des photos dans "galerie" (ou crée un sous-dossier) sur GitHub pour en ajouter un.</div>';
-  }
-
-  function ouvrirLightbox(album, index){
-    albumOuvert = album;
-    currentIndex = index;
-    majImageLightbox();
-    lightbox.classList.add('open');
-  }
-
-  function majImageLightbox(){
-    const photo = albumOuvert.photos[currentIndex];
-    lightboxImg.src = photo.url;
-    lightboxCaption.innerHTML = '<strong>' + albumOuvert.titre + '</strong> — ' + (currentIndex + 1) + ' / ' + albumOuvert.photos.length;
-    lightboxDescription.textContent = photo.description || '';
-  }
-
-  function fermerLightbox(){
-    lightbox.classList.remove('open');
-  }
-
-  function suivant(delta){
-    if(!albumOuvert) return;
-    currentIndex = (currentIndex + delta + albumOuvert.photos.length) % albumOuvert.photos.length;
-    majImageLightbox();
-  }
-
-  btnClose.addEventListener('click', fermerLightbox);
-  btnPrev.addEventListener('click', function(){ suivant(-1); });
-  btnNext.addEventListener('click', function(){ suivant(1); });
-  lightbox.addEventListener('click', function(e){
-    if(e.target === lightbox) fermerLightbox();
-  });
-  document.addEventListener('keydown', function(e){
-    if(!lightbox.classList.contains('open')) return;
-    if(e.key === 'Escape') fermerLightbox();
-    if(e.key === 'ArrowLeft') suivant(-1);
-    if(e.key === 'ArrowRight') suivant(1);
-  });
-
-  
-  function afficherAlbums(){
-    if(!albums.length){ afficherVide(); return; }
-    grid.innerHTML = albums.map(function(album, i){
-      const nbPhotos = album.photos.length;
-      const desc = album.description ? '<p class="filmstrip-desc">' + album.description + '</p>' : '';
-      const numFrame = String(i + 1).padStart(2, '0');
-      return '<div class="filmstrip-card" data-album-index="' + i + '">'
-        + '<div class="filmstrip-frame-num">FRAME N&deg;' + numFrame + '</div>'
-        + '<div class="filmstrip-photo" style="background-image:url(\'' + album.couverture + '\')"></div>'
-        + '<h3 class="filmstrip-title">' + album.titre + '</h3>'
-        + desc
-        + '<div class="filmstrip-meta"><span>' + album.categorie + '</span><span>' + nbPhotos + ' PH</span></div>'
-        + '</div>';
-    }).join('');
-
-    grid.querySelectorAll('.filmstrip-card').forEach(function(card){
-      card.addEventListener('click', function(){
-        const album = albums[parseInt(card.dataset.albumIndex, 10)];
-        ouvrirLightbox(album, 0);
-      });
-    });
-  }
-
-
-  function urlDossier(chemin){
-    return "https://api.github.com/repos/" + GITHUB_USER + "/" + GITHUB_REPO + "/contents/" + chemin + "?ref=" + GITHUB_BRANCH;
-  }
-
-  async function chargerDossier(chemin){
-    const res = await fetch(urlDossier(chemin));
-    if(!res.ok) throw new Error("Erreur API GitHub (" + chemin + ")");
-    return res.json();
-  }
-
-  async function chargerMeta(){
-    try{
-      const res = await fetch(ALBUMS_META_URL, { cache: 'no-store' });
-      if(!res.ok) return {};
-      const liste = await res.json();
-      const map = {};
-      liste.forEach(function(entree){ map[entree.dossier] = entree; });
-      return map;
-    }catch(err){
-      console.warn('[galerie] Pas de albums.json (optionnel) :', err);
-      return {};
-    }
-  }
-
-  function construireAlbum(nomDossier, cheminAffichage, fichiers, meta){
-    const photosImg = fichiers.filter(f => f.type === "file" && estImage(f.name));
-    const infos = meta[nomDossier] || {};
-    const descriptionsPhotos = infos.photos || {};
-    const photos = photosImg.map(f => ({
-      name: f.name,
-      url: f.download_url,
-      description: descriptionsPhotos[f.name] || ''
-    }));
-
-    let couverture = photos[0] ? photos[0].url : '';
-    if(infos.couverture){
-      const trouvee = photos.find(p => p.name === infos.couverture);
-      if(trouvee){
-        couverture = trouvee.url;
-      } else if(/^https?:\/\//i.test(infos.couverture)){
-        couverture = infos.couverture;
-      } else {
-        couverture = "https://raw.githubusercontent.com/" + GITHUB_USER + "/" + GITHUB_REPO + "/" + GITHUB_BRANCH + "/" + infos.couverture.replace(/^\/+/, '');
-      }
-    }
-
+  function creerParticule(){
     return {
-      dossier: nomDossier,
-      categorie: infos.categorie || CATEGORIE_DEFAUT,
-      titre: infos.titre || (cheminAffichage === null ? ALBUM_RACINE_TITRE : prettifier(nomDossier)),
-      description: infos.description || '',
-      couverture: couverture,
-      photos: photos,
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 0.12,
+      vy: -0.08 - Math.random() * 0.16,
+      r: Math.random() * 1.5 + 0.5,
+      life: Math.random(),
     };
   }
 
-  async function chargerAlbums(){
-    const [racine, meta] = await Promise.all([chargerDossier(GITHUB_FOLDER), chargerMeta()]);
-
-    const sousDossiers = racine.filter(f => f.type === "dir" && !DOSSIERS_MASQUES.includes(f.name));
-    const fichiersRacine = racine.filter(f => f.type === "file" && estImage(f.name));
-
-    const contenus = await Promise.all(sousDossiers.map(d => chargerDossier(d.path).catch(() => [])));
-
-    const albumsDossiers = sousDossiers
-      .map((dossier, i) => construireAlbum(dossier.name, dossier.path, contenus[i], meta))
-      .filter(album => album.photos.length > 0);
-
-    const albums = [...albumsDossiers];
-
-    if(fichiersRacine.length > 0){
-      const albumRacine = construireAlbum(ALBUM_RACINE_CLE, null, fichiersRacine, meta);
-      albums.unshift(albumRacine);
+  function pas(){
+    ctx.clearRect(0, 0, width, height);
+    for(const p of particles){
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life += 0.0035;
+      if(p.y < -10){ p.y = height + 10; p.x = Math.random() * width; }
+      if(p.x < 0 || p.x > width) p.vx *= -1;
+      const flicker = 0.35 + 0.35 * Math.sin(p.life * 6.28);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 150, 60, ${flicker})`;
+      ctx.fill();
     }
-
-    return albums;
+    for(let i = 0; i < particles.length; i++){
+      for(let j = i + 1; j < particles.length; j++){
+        const a = particles[i], b = particles[j];
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if(dist < RAYON_LIEN){
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.strokeStyle = `rgba(214, 205, 190, ${0.09 * (1 - dist / RAYON_LIEN)})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(pas);
   }
 
-  chargerAlbums()
-    .then(function(liste){
-      albums = liste;
-      afficherAlbums();
-    })
-    .catch(function(err){
-      console.error(err);
-      afficherErreur();
-    });
+  redimensionner();
+  window.addEventListener('resize', redimensionner);
+  requestAnimationFrame(pas);
 })();
 </script>
+
+
+
 
 </body>
 </html>
