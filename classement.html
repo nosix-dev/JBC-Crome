@@ -53,7 +53,7 @@
   .ranking-header h3{font-family:'Anton', sans-serif; font-size:15px; text-transform:uppercase; color:var(--chrome-1); margin:0; letter-spacing:.5px;}
   .rank-loading{color:var(--chrome-3); font-size:13px; margin-bottom:10px;}
   .rank-note{color:var(--chrome-3); font-size:13px; margin-top:14px;}
-  .rank-columns{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+  .rank-columns{display:grid; grid-template-columns:repeat(2,1fr); gap:14px;}
   .rank-col{padding:12px 14px; border-radius:14px; border:1px solid rgba(255,255,255,.08); background:linear-gradient(160deg, rgba(15,23,38,.9), rgba(9,17,29,.95));}
   .rank-col h4{font-family:'Anton', sans-serif; font-size:12px; text-transform:uppercase; letter-spacing:.7px; color:var(--amber); margin-bottom:10px;}
   .rank-mini-list{list-style:none; display:grid; gap:8px;}
@@ -153,10 +153,6 @@
               <h4>Top missions</h4>
               <ol class="rank-mini-list" id="rank-missions"></ol>
             </div>
-            <div class="rank-col">
-              <h4>Top convois</h4>
-              <ol class="rank-mini-list" id="rank-convois"></ol>
-            </div>
           </div>
           <p class="rank-note" id="rank-updated">Dernière mise à jour : —</p>
         </div>
@@ -180,7 +176,6 @@
 
   const colKm = document.getElementById('rank-km');
   const colMissions = document.getElementById('rank-missions');
-  const colConvois = document.getElementById('rank-convois');
   const loading = document.getElementById('rank-loading');
   const updated = document.getElementById('rank-updated');
   const refresh = document.getElementById('refresh-ranking');
@@ -205,19 +200,28 @@
     loading.style.display = 'block';
     loading.textContent = 'Chargement du classement…';
     try{
-      const res = await fetch(CLASSEMENT_API_URL, { cache: 'no-store' });
+      const url = CLASSEMENT_API_URL + (CLASSEMENT_API_URL.includes('?') ? '&' : '?') + 'ngrok-skip-browser-warning=true';
+      const res = await fetch(url, {
+        cache: 'no-store',
+        headers: {
+          // Le paramètre d'URL ci-dessus ne suffit plus à contourner la page
+          // d'avertissement ngrok : il faut aussi l'en-tête dédié, sinon
+          // ngrok renvoie une page HTML sans en-têtes CORS et le navigateur
+          // bloque la réponse (erreur "blocked by CORS policy").
+          'ngrok-skip-browser-warning': 'true'
+        }
+      });
       if(!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
 
       rendreListe(colKm, data.top_km, 'km');
       rendreListe(colMissions, data.top_missions, 'missions');
-      rendreListe(colConvois, data.top_convois, 'convois');
 
       updated.textContent = 'Dernière mise à jour : ' + new Date(data.updatedAt).toLocaleString('fr-FR');
       loading.style.display = 'none';
     }catch(err){
-      console.warn('[classement] indisponible :', err.message);
-      loading.textContent = 'Classement indisponible pour le moment. Réessaie plus tard.';
+      console.warn('[classement] indisponible :', err);
+      loading.textContent = 'Classement indisponible : ' + err.message;
     }
   }
 
