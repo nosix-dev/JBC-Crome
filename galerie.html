@@ -342,17 +342,17 @@
   const ALBUM_RACINE_CLE = "_racine";
   const ALBUM_RACINE_TITRE = "Photos";
 
-  // jsDelivr : miroir CDN gratuit du contenu GitHub, sans le plafond de
-  // 60 requêtes/heure de api.github.com (qui causait des 403 dès que la
-  // galerie contenait plusieurs sous-dossiers, chacun nécessitant un appel).
-  // Un seul appel renvoie tout l'arbre de fichiers du dépôt.
-  const JSDELIVR_TREE_URL = "https://data.jsdelivr.com/v1/package/gh/" + GITHUB_USER + "/" + GITHUB_REPO + "@" + GITHUB_BRANCH;
+  // API Git Trees de GitHub : un seul appel recursive=1 renvoie tout
+  // l'arbre du dépôt (au lieu d'un appel par dossier comme avant), ce qui
+  // reste largement sous la limite de 60 requêtes/heure non-authentifiées.
+  // (jsDelivr a été essayé mais son API bloque volontairement le listing
+  // de fichiers avec un 403 systématique, donc abandonné.)
+  const GITHUB_TREE_URL = "https://api.github.com/repos/" + GITHUB_USER + "/" + GITHUB_REPO + "/git/trees/" + GITHUB_BRANCH + "?recursive=1";
 
   function urlFichier(chemin){
-    // cdn.jsdelivr.net sert le contenu brut, mis en cache CDN (peut mettre
-    // jusqu'à ~12h à refléter un nouveau commit ; purge possible via
-    // https://purge.jsdelivr.net/gh/USER/REPO@BRANCH/CHEMIN si besoin immédiat).
-    return "https://cdn.jsdelivr.net/gh/" + GITHUB_USER + "/" + GITHUB_REPO + "@" + GITHUB_BRANCH + "/" + chemin;
+    // raw.githubusercontent.com n'est pas soumis à la limite de 60 req/h
+    // de api.github.com : on peut charger autant d'images que nécessaire.
+    return "https://raw.githubusercontent.com/" + GITHUB_USER + "/" + GITHUB_REPO + "/" + GITHUB_BRANCH + "/" + chemin;
   }
 
   const grid = document.getElementById('albums-grid');
@@ -450,8 +450,8 @@
   }
 
   async function chargerArborescence(){
-    const res = await fetch(JSDELIVR_TREE_URL, { cache: 'no-store' });
-    if(!res.ok) throw new Error("Erreur API jsDelivr (" + res.status + ")");
+    const res = await fetch(GITHUB_TREE_URL, { cache: 'no-store' });
+    if(!res.ok) throw new Error("Erreur API GitHub (" + res.status + ")");
     return res.json();
   }
 
@@ -505,29 +505,37 @@
   async function chargerAlbums(){
     const [arbo, meta] = await Promise.all([chargerArborescence(), chargerMeta()]);
 
-    // arbo.files est l'arbre complet du dépôt : chaque entrée est soit un
-    // dossier ({type:'directory', name, files:[...]}) soit un fichier
-    // ({type:'file', name}), imbriqué récursivement.
-    const racineDuSite = Array.isArray(arbo.files) ? arbo.files : [];
-    const dossierGalerie = racineDuSite.find(f => f.type === 'directory' && f.name === GITHUB_FOLDER);
-    if(!dossierGalerie){
-      return [];
-    }
-    const contenuGalerie = dossierGalerie.files || [];
+    // L'API Git Trees renvoie une liste PLATE de chemins complets, ex :
+    // "galerie/photo.jpg", "galerie/convoi/photo1.jpg", chacun avec un
+    // type "blob" (fichier) ou "tree" (dossier).
+    const entrees = Array.isArray(arbo.tree) ? arbo.tree : [];
+    const prefixe = GITHUB_FOLDER + "/";
 
-    const fichiersRacine = contenuGalerie
-      .filter(f => f.type === 'file' && estImage(f.name))
-      .map(f => ({ name: f.name, chemin: GITHUB_FOLDER + '/' + f.name }));
+    const fichiersRacine = [];
+    const parDossier = {};
 
-    const sousDossiers = contenuGalerie.filter(f => f.type === 'directory' && !DOSSIERS_MASQUES.includes(f.name));
+    entrees.forEach(function(entree){
+      if(entree.type !== 'blob') return;
+      if(!entree.path.startsWith(prefixe)) return;
+      const reste = entree.path.slice(prefixe.length);
+      if(!estImage(reste)) return;
 
-    const albumsDossiers = sousDossiers
-      .map(dossier => {
-        const images = (dossier.files || [])
-          .filter(f => f.type === 'file' && estImage(f.name))
-          .map(f => ({ name: f.name, chemin: GITHUB_FOLDER + '/' + dossier.name + '/' + f.name }));
-        return construireAlbum(dossier.name, dossier.name, images, meta);
-      })
+      const segments = reste.split('/');
+      if(segments.length === 1){
+        // Directement dans galerie/ (album racine)
+        fichiersRacine.push({ name: segments[0], chemin: entree.path });
+      } else {
+        // galerie/<dossier>/.../fichier.jpg -> on regroupe par premier
+        // niveau de sous-dossier uniquement.
+        const dossier = segments[0];
+        if(!parDossier[dossier]) parDossier[dossier] = [];
+        parDossier[dossier].push({ name: segments[segments.length - 1], chemin: entree.path });
+      }
+    });
+
+    const albumsDossiers = Object.keys(parDossier)
+      .filter(dossier => !DOSSIERS_MASQUES.includes(dossier))
+      .map(dossier => construireAlbum(dossier, dossier, parDossier[dossier], meta))
       .filter(album => album.photos.length > 0);
 
     const albums = [...albumsDossiers];
