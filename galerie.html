@@ -342,6 +342,19 @@
   const ALBUM_RACINE_CLE = "_racine";
   const ALBUM_RACINE_TITRE = "Photos";
 
+  // jsDelivr : miroir CDN gratuit du contenu GitHub, sans le plafond de
+  // 60 requêtes/heure de api.github.com (qui causait des 403 dès que la
+  // galerie contenait plusieurs sous-dossiers, chacun nécessitant un appel).
+  // Un seul appel renvoie tout l'arbre de fichiers du dépôt.
+  const JSDELIVR_TREE_URL = "https://data.jsdelivr.com/v1/package/gh/" + GITHUB_USER + "/" + GITHUB_REPO + "@" + GITHUB_BRANCH;
+
+  function urlFichier(chemin){
+    // cdn.jsdelivr.net sert le contenu brut, mis en cache CDN (peut mettre
+    // jusqu'à ~12h à refléter un nouveau commit ; purge possible via
+    // https://purge.jsdelivr.net/gh/USER/REPO@BRANCH/CHEMIN si besoin immédiat).
+    return "https://cdn.jsdelivr.net/gh/" + GITHUB_USER + "/" + GITHUB_REPO + "@" + GITHUB_BRANCH + "/" + chemin;
+  }
+
   const grid = document.getElementById('albums-grid');
   const lightbox = document.getElementById('lightbox');
   const lightboxImg = document.getElementById('lightbox-img');
@@ -436,14 +449,9 @@
     });
   }
 
-
-  function urlDossier(chemin){
-    return "https://api.github.com/repos/" + GITHUB_USER + "/" + GITHUB_REPO + "/contents/" + chemin + "?ref=" + GITHUB_BRANCH;
-  }
-
-  async function chargerDossier(chemin){
-    const res = await fetch(urlDossier(chemin));
-    if(!res.ok) throw new Error("Erreur API GitHub (" + chemin + ")");
+  async function chargerArborescence(){
+    const res = await fetch(JSDELIVR_TREE_URL, { cache: 'no-store' });
+    if(!res.ok) throw new Error("Erreur API jsDelivr (" + res.status + ")");
     return res.json();
   }
 
@@ -461,13 +469,14 @@
     }
   }
 
-  function construireAlbum(nomDossier, cheminAffichage, fichiers, meta){
-    const photosImg = fichiers.filter(f => f.type === "file" && estImage(f.name));
+  function construireAlbum(nomDossier, cheminAffichage, fichiersImages, meta){
+    // fichiersImages : liste de {name, chemin} — chemin relatif au dépôt,
+    // utilisé pour construire l'URL cdn.jsdelivr.net.
     const infos = meta[nomDossier] || {};
     const descriptionsPhotos = infos.photos || {};
-    const photos = photosImg.map(f => ({
+    const photos = fichiersImages.map(f => ({
       name: f.name,
-      url: f.download_url,
+      url: urlFichier(f.chemin),
       description: descriptionsPhotos[f.name] || ''
     }));
 
@@ -479,7 +488,7 @@
       } else if(/^https?:\/\//i.test(infos.couverture)){
         couverture = infos.couverture;
       } else {
-        couverture = "https://raw.githubusercontent.com/" + GITHUB_USER + "/" + GITHUB_REPO + "/" + GITHUB_BRANCH + "/" + infos.couverture.replace(/^\/+/, '');
+        couverture = urlFichier(infos.couverture.replace(/^\/+/, ''));
       }
     }
 
@@ -494,15 +503,31 @@
   }
 
   async function chargerAlbums(){
-    const [racine, meta] = await Promise.all([chargerDossier(GITHUB_FOLDER), chargerMeta()]);
+    const [arbo, meta] = await Promise.all([chargerArborescence(), chargerMeta()]);
 
-    const sousDossiers = racine.filter(f => f.type === "dir" && !DOSSIERS_MASQUES.includes(f.name));
-    const fichiersRacine = racine.filter(f => f.type === "file" && estImage(f.name));
+    // arbo.files est l'arbre complet du dépôt : chaque entrée est soit un
+    // dossier ({type:'directory', name, files:[...]}) soit un fichier
+    // ({type:'file', name}), imbriqué récursivement.
+    const racineDuSite = Array.isArray(arbo.files) ? arbo.files : [];
+    const dossierGalerie = racineDuSite.find(f => f.type === 'directory' && f.name === GITHUB_FOLDER);
+    if(!dossierGalerie){
+      return [];
+    }
+    const contenuGalerie = dossierGalerie.files || [];
 
-    const contenus = await Promise.all(sousDossiers.map(d => chargerDossier(d.path).catch(() => [])));
+    const fichiersRacine = contenuGalerie
+      .filter(f => f.type === 'file' && estImage(f.name))
+      .map(f => ({ name: f.name, chemin: GITHUB_FOLDER + '/' + f.name }));
+
+    const sousDossiers = contenuGalerie.filter(f => f.type === 'directory' && !DOSSIERS_MASQUES.includes(f.name));
 
     const albumsDossiers = sousDossiers
-      .map((dossier, i) => construireAlbum(dossier.name, dossier.path, contenus[i], meta))
+      .map(dossier => {
+        const images = (dossier.files || [])
+          .filter(f => f.type === 'file' && estImage(f.name))
+          .map(f => ({ name: f.name, chemin: GITHUB_FOLDER + '/' + dossier.name + '/' + f.name }));
+        return construireAlbum(dossier.name, dossier.name, images, meta);
+      })
       .filter(album => album.photos.length > 0);
 
     const albums = [...albumsDossiers];
