@@ -1,0 +1,134 @@
+:root {
+  --asphalt:#07111d;
+  --panel:#0f1726;
+  --panel-2:#142338;
+  --hairline:rgba(255,255,255,.10);
+  --chrome-1:#f5f7fb;
+  --chrome-2:#dfe7f2;
+  --chrome-3:#8ea0b7;
+  --amber:#5da8ff;
+  --amber-dim:#274d7c;
+  --amber-glow:rgba(93,168,255,.24);
+  --safety-red:#3b82f6;
+  --safety-red-dark:#18365d;
+  --shadow-hard:0 18px 45px rgba(2,10,20,.45);
+}
+
+body {
+  background: radial-gradient(ellipse at 15% -10%, #12233a 0%, transparent 55%), radial-gradient(ellipse at 85% 110%, #0b1726 0%, transparent 55%), var(--asphalt) !important;
+  color: var(--chrome-2) !important;
+  font-family: 'Work Sans', sans-serif !important;
+}
+
+body::before {
+  background-image: repeating-linear-gradient(35deg, rgba(255,255,255,.014) 0px, rgba(255,255,255,.014) 1px, transparent 1px, transparent 4px) !important;
+}
+
+header {
+  background: linear-gradient(180deg, rgba(7,17,29,.96), rgba(7,17,29,.86)) !important;
+  backdrop-filter: blur(14px) !important;
+  border-bottom: 1px solid var(--hairline) !important;
+}
+
+.logo {
+  font-family: 'Anton', sans-serif !important;
+  background: linear-gradient(90deg, #ffffff 0%, #dce8f6 35%, #8db7eb 60%, #ffffff 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+nav a {
+  color: var(--chrome-3) !important;
+  background: rgba(255,255,255,.03) !important;
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+}
+
+nav a:hover,
+nav a.active {
+  color: var(--chrome-1) !important;
+  background: rgba(93,168,255,.12) !important;
+  border-color: rgba(93,168,255,.28) !important;
+}
+
+.btn,
+.btn-chrome,
+.btn-discord,
+.btn-truckbook,
+.btn-fill,
+.btn-outline {
+  font-family: 'Work Sans', sans-serif !important;
+  border-radius: 999px !important;
+}
+
+.btn-chrome {
+  background: linear-gradient(135deg, #f7fbff 0%, #dce9f9 50%, #8fbcee 100%) !important;
+  color: #0f1f33 !important;
+  box-shadow: 0 12px 28px rgba(5,18,32,.24), inset 0 1px 0 rgba(255,255,255,.95) !important;
+}
+
+.btn-discord {
+  background: linear-gradient(135deg, #4c7dff 0%, #2d5ddf 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 12px 28px rgba(37,88,215,.24), inset 0 1px 0 rgba(255,255,255,.22) !important;
+}
+
+.btn-truckbook,
+.btn-fill {
+  background: linear-gradient(135deg, #4cc9f0 0%, #2a7fb8 100%) !important;
+  color: #f4fbff !important;
+  box-shadow: 0 12px 28px rgba(42,127,184,.22), inset 0 1px 0 rgba(255,255,255,.22) !important;
+}
+
+.btn-outline {
+  background: transparent !important;
+  color: var(--chrome-2) !important;
+  border: 1px solid rgba(93,168,255,.35) !important;
+}
+
+.hero h1,
+.section-head h2,
+.plate h3,
+.team-card .pseudo,
+.event-content h3,
+.album-title,
+.discord-band h2 {
+  font-family: 'Anton', sans-serif !important;
+  color: var(--chrome-1) !important;
+  letter-spacing: .5px !important;
+}
+
+.hero-eyebrow,
+.eyebrow,
+.hero-stat-label,
+.plate .num,
+.role-title,
+.album-category {
+  color: var(--amber) !important;
+}
+
+.plate,
+.team-card,
+.event-row,
+.album-card,
+.discord-band,
+footer .footer-shell {
+  background: linear-gradient(160deg, var(--panel-2), var(--panel)) !important;
+  border: 1px solid var(--hairline) !important;
+  box-shadow: var(--shadow-hard) !important;
+}
+
+.plate:hover,
+.team-card:hover,
+.event-row:hover,
+.album-card:hover {
+  border-color: rgba(93,168,255,.28) !important;
+  transform: translateY(-3px) !important;
+}
+
+footer .footer-shell {
+  color: var(--chrome-3) !important;
+  border-radius: 18px !important;
+  padding: 18px 22px !important;
+}
