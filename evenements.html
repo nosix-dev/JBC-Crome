@@ -531,7 +531,8 @@
 
 <script>
 (function(){
-  const EVENTS_URL = 'events.json';
+  // Remplace par le domaine ngrok fixe de ton bot (même base que /api/classement).
+  const EVENTS_API_URL = "https://caviar-gatherer-matriarch.ngrok-free.dev/api/events";
   const container = document.getElementById('events-container');
   if(!container) return;
 
@@ -621,7 +622,15 @@
 
   async function chargerEvenements(){
     try{
-      const res = await fetch(EVENTS_URL, { cache: 'no-store' });
+      const url = EVENTS_API_URL + (EVENTS_API_URL.includes('?') ? '&' : '?') + 'ngrok-skip-browser-warning=true';
+      const res = await fetch(url, {
+        cache: 'no-store',
+        headers: {
+          // Comme pour /api/classement : nécessaire pour éviter la page
+          // d'avertissement ngrok qui casserait le CORS.
+          'ngrok-skip-browser-warning': 'true'
+        }
+      });
       if(!res.ok) throw new Error('HTTP ' + res.status);
       const events = await res.json();
       if(!Array.isArray(events) || events.length === 0){
@@ -630,8 +639,8 @@
       }
       afficherEvenements(events);
     }catch(err){
-      console.warn('[events] Échec chargement events.json', err);
-      container.innerHTML = '<div class="empty-state">Impossible de charger les événements.</div>';
+      console.warn('[events] Échec chargement /api/events', err);
+      container.innerHTML = '<div class="empty-state">Événements indisponibles : ' + err.message + '</div>';
     }
   }
 
