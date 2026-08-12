@@ -711,7 +711,11 @@
 
 <script>
 (function(){
-  const EVENTS_URL = 'events.json';
+  // FIX : ancienne source "events.json" (fichier statique) remplacée par
+  // l'API en direct du bot (/api/events), la même que celle utilisée par
+  // evenements.html. Sans ça, une suppression via /evenement supprimer
+  // n'était jamais répercutée ici : la bannière lisait un fichier figé.
+  const EVENTS_URL = 'https://chassis-badly-stack-warner.trycloudflare.com/api/events';
   const banner = document.getElementById('next-event-banner');
   if(!banner) return;
 
@@ -773,7 +777,7 @@
 
       banner.classList.add('visible');
     }catch(err){
-      console.warn('[next-event-banner] Échec chargement events.json', err);
+      console.warn('[next-event-banner] Échec chargement /api/events', err);
     }
   }
 
