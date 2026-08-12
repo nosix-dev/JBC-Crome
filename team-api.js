@@ -76,6 +76,8 @@ let cacheStats = null;
 let cacheStatsTime = 0;
 let cacheClassement = null;
 let cacheClassementTime = 0;
+let cacheEvents = null;
+let cacheEventsTime = 0;
 let started = false;
 
 async function getGuildMembers(guild) {
@@ -204,25 +206,36 @@ async function buildClassementData(client) {
   const members = await getGuildMembers(guild);
   const botData = chargerDonneesBot();
   const guildData = (botData.guilds && botData.guilds[guild.id]) || {};
-  const chauffeurs = guildData.chauffeurs || {};
 
-  const entries = Object.entries(chauffeurs).map(([userId, stats]) => {
+  // Km + missions (trajets) : alimentés par le webhook TrucksBook, indexés
+  // par pseudo TrucksBook (pas par ID Discord).
+  const webhookDrivers = guildData.webhookDrivers || {};
+  const entriesWebhook = Object.entries(webhookDrivers).map(([pseudo, stats]) => ({
+    pseudo,
+    km: (stats && stats.km) || 0,
+    missions: (stats && stats.trajets) || 0,
+  }));
+
+  // Convois : pas de compteur dédié dans data.json, on le calcule en comptant
+  // les apparitions de chaque ID Discord dans les listes "participants" des
+  // convois de la guild.
+  const compteurConvois = {};
+  for (const convoi of guildData.convois || []) {
+    for (const userId of convoi.participants || []) {
+      compteurConvois[userId] = (compteurConvois[userId] || 0) + 1;
+    }
+  }
+  const entriesConvois = Object.entries(compteurConvois).map(([userId, nb]) => {
     const membre = members.get(userId);
     const pseudo = membre ? (membre.displayName || membre.user.username) : `Utilisateur ${userId}`;
-    return {
-      userId,
-      pseudo,
-      km: (stats && stats.km) || 0,
-      missions: (stats && stats.missions) || 0,
-      convois: (stats && stats.convois) || 0,
-    };
+    return { pseudo, convois: nb };
   });
 
   return {
     updatedAt: new Date().toISOString(),
-    top_km: construireTop(entries, "km"),
-    top_missions: construireTop(entries, "missions"),
-    top_convois: construireTop(entries, "convois"),
+    top_km: construireTop(entriesWebhook, "km"),
+    top_missions: construireTop(entriesWebhook, "missions"),
+    top_convois: construireTop(entriesConvois, "convois"),
   };
 }
 
@@ -232,6 +245,40 @@ async function getClassementData(client) {
   cacheClassement = await buildClassementData(client);
   cacheClassementTime = now;
   return cacheClassement;
+}
+// ==================================================================
+
+// ==== EVENEMENTS (convois planifiés) ====
+// Lit botData.guilds[guildId].evenements = [
+//   { date: "2026-09-12", titre: "...", lieu: "...", categorie: "...",
+//     description: ["...", "..."] ou "...", lien: "https://...", image: "https://..." },
+//   ...
+// ]
+// Cette liste est gérée depuis le bot (commandes /evenement-ajouter,
+// /evenement-supprimer à créer côté ScaraBot) au lieu d'être éditée à la
+// main dans events.json sur le repo du site.
+async function buildEventsData(client) {
+  const guild = resoudreGuild(client);
+  if (!guild) throw new Error("Aucun serveur Discord disponible pour le bot.");
+
+  const botData = chargerDonneesBot();
+  const guildData = (botData.guilds && botData.guilds[guild.id]) || {};
+  const evenements = Array.isArray(guildData.evenements) ? guildData.evenements : [];
+
+  // Ne garde que les événements avec une date exploitable, triés du plus
+  // proche au plus lointain (même logique que le front evenements.html).
+  return evenements
+    .filter((ev) => ev && ev.date && !isNaN(new Date(ev.date)))
+    .slice()
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+}
+
+async function getEventsData(client) {
+  const now = Date.now();
+  if (cacheEvents && now - cacheEventsTime < CACHE_MS) return cacheEvents;
+  cacheEvents = await buildEventsData(client);
+  cacheEventsTime = now;
+  return cacheEvents;
 }
 // ==================================================================
 
@@ -307,6 +354,7 @@ async function ouvrirTunnelNgrok(port) {
       console.log(`[team-api]    - TEAM_API_URL       = https://${NGROK_DOMAIN}/api/team`);
       console.log(`[team-api]    - STATS_API_URL      = https://${NGROK_DOMAIN}/api/stats`);
       console.log(`[team-api]    - CLASSEMENT_API_URL = https://${NGROK_DOMAIN}/api/classement`);
+      console.log(`[team-api]    - EVENTS_API_URL     = https://${NGROK_DOMAIN}/api/events`);
     }
   };
 
@@ -332,8 +380,25 @@ function startTeamApi(client, options = {}) {
 
   const port = options.port || PORT;
   const app = express();
-  app.use(cors());
-  app.options("*", cors());
+
+  // IMPORTANT : app.use(cors()) gère déjà tout seul les requêtes OPTIONS de
+  // pré-vol (preflight) pour toutes les routes, il ne faut pas rajouter de
+  // route explicite type app.options("*", cors()) : sur Express 5 (qui
+  // utilise path-to-regexp v6), le motif générique "*" tout seul fait planter
+  // le serveur au démarrage (route pattern invalide), ce qui empêchait le
+  // serveur — et donc les en-têtes CORS — d'être disponible pour /api/classement.
+  app.use(cors({
+    origin: true, // reflète l'origine de la requête, fonctionne pour un site public
+    methods: ["GET", "OPTIONS"],
+  }));
+
+  // Bypass de la page d'avertissement ngrok sur TOUTES les réponses de l'API,
+  // pour que le fetch() du site ne tombe jamais sur l'interstitiel HTML sans
+  // en-têtes CORS (cause la plus probable de l'erreur observée).
+  app.use((req, res, next) => {
+    res.setHeader("ngrok-skip-browser-warning", "true");
+    next();
+  });
 
   app.get("/api/team", async (req, res) => {
     try {
@@ -361,6 +426,16 @@ function startTeamApi(client, options = {}) {
       res.json(data);
     } catch (err) {
       console.error("[team-api] erreur classement:", err);
+      res.status(500).json({ error: "internal_error" });
+    }
+  });
+
+  app.get("/api/events", async (req, res) => {
+    try {
+      const data = await getEventsData(client);
+      res.json(data);
+    } catch (err) {
+      console.error("[team-api] erreur events:", err);
       res.status(500).json({ error: "internal_error" });
     }
   });
