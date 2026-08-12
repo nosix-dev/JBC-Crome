@@ -34,6 +34,17 @@ const ROLE_IDS = {
   chauffeurs_essai: "1527806431519314183",
 };
 
+// Rôles comptés comme "chauffeurs" pour /api/stats (hero-stats du site) :
+// union de tous les rôles de la société, hors rôle "discord" (simple rôle de
+// vérification, pas un rôle de chauffeur). Un membre cumulant plusieurs de
+// ces rôles (ex: patron qui roule aussi) n'est compté qu'une seule fois.
+const ROLES_CHAUFFEURS_STATS = [
+  ROLE_IDS.patron,
+  ROLE_IDS.gerants,
+  ROLE_IDS.chauffeurs,
+  ROLE_IDS.chauffeurs_essai,
+];
+
 const DATA_PATH = path.join(__dirname, "data.json");
 
 const NGROK_DIR = path.join(__dirname, "ngrok-bin");
@@ -161,10 +172,13 @@ async function buildStatsData(client) {
   if (!guild) throw new Error("Aucun serveur Discord disponible pour le bot.");
 
   const members = await getGuildMembers(guild);
-  const roleChauffeurs = guild.roles.cache.get(ROLE_IDS.chauffeurs);
-  const nbChauffeurs = roleChauffeurs
-    ? members.filter((m) => m.roles.cache.has(roleChauffeurs.id)).size
-    : 0;
+
+  // Union des rôles de la société (patron/gérants/chauffeurs/chauffeurs à
+  // l'essai) : chaque membre n'est compté qu'une fois, même s'il cumule
+  // plusieurs de ces rôles.
+  const nbChauffeurs = members.filter((m) =>
+    ROLES_CHAUFFEURS_STATS.some((roleId) => m.roles.cache.has(roleId))
+  ).size;
 
   const botData = chargerDonneesBot();
   let km = 0;
