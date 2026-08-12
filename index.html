@@ -692,7 +692,7 @@
     return Number(n || 0).toLocaleString('fr-FR');
   }
 
-  fetch(STATS_API_URL)
+  fetch(STATS_API_URL, { headers: { 'ngrok-skip-browser-warning': 'true' } })
     .then(function(res){
       if(!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
@@ -753,7 +753,7 @@
 
   async function chargerProchainEvenement(){
     try{
-      const res = await fetch(EVENTS_URL, { cache: 'no-store' });
+      const res = await fetch(EVENTS_URL, { cache: 'no-store', headers: { 'ngrok-skip-browser-warning': 'true' } });
       if(!res.ok) throw new Error('HTTP ' + res.status);
       const events = await res.json();
       if(!Array.isArray(events)) return;
