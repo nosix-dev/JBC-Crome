@@ -770,7 +770,8 @@
 
       titleEl.textContent = evenementCible.titre || '';
       metaEl.textContent = formaterDate(d) + (evenementCible.lieu ? ' — ' + evenementCible.lieu : '');
-      if(evenementCible.lien) btnEl.href = evenementCible.lien;
+      // Le bouton reste toujours sur la page Événements du site, jamais sur
+      // le lien externe éventuel de l'événement (ex: page TruckersMP).
 
       majCompteARebours();
       setInterval(majCompteARebours, 60 * 1000);
