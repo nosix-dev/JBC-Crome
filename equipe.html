@@ -487,7 +487,22 @@
   }
   .profile-role::before{content:""; width:6px; height:6px; border-radius:50%; background:currentColor; box-shadow:0 0 6px currentColor;}
   .profile-meta{margin-top:18px; font-size:12px; color:var(--chrome-3); font-family:'Space Mono', monospace; letter-spacing:.5px;}
-  .profile-actions{margin-top:24px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
+
+  .profile-stats{
+    margin-top:22px; display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
+  }
+  .profile-stat{
+    padding:12px 8px; background:rgba(255,255,255,.03); border:1px solid var(--hairline); border-radius:8px;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+  }
+  .profile-stat-value{
+    font-family:'Space Mono', monospace; font-weight:700; font-size:16px; color:var(--chrome-1);
+    font-variant-numeric:tabular-nums; white-space:nowrap;
+  }
+  .profile-stat-value.loading{color:var(--chrome-3); opacity:.5;}
+  .profile-stat-label{font-size:8.5px; letter-spacing:1.2px; text-transform:uppercase; color:var(--chrome-3);}
+
+  .profile-actions{margin-top:22px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
   .profile-btn{
     display:inline-flex; align-items:center; gap:8px; font-size:12px; letter-spacing:1px; text-transform:uppercase; font-weight:700;
     padding:11px 20px; border-radius:20px; cursor:pointer; border:1px solid var(--hairline);
@@ -690,13 +705,29 @@
     <div class="profile-pseudo" id="profile-pseudo">—</div>
     <span class="profile-role" id="profile-role">—</span>
     <div class="profile-meta" id="profile-meta">J.B.C Crome</div>
+    <div class="profile-stats" id="profile-stats">
+      <div class="profile-stat">
+        <span class="profile-stat-value loading" id="profile-stat-km">…</span>
+        <span class="profile-stat-label">Km parcourus</span>
+      </div>
+      <div class="profile-stat">
+        <span class="profile-stat-value loading" id="profile-stat-convois">…</span>
+        <span class="profile-stat-label">Convois</span>
+      </div>
+      <div class="profile-stat">
+        <span class="profile-stat-value loading" id="profile-stat-anciennete">…</span>
+        <span class="profile-stat-label">Ancienneté</span>
+      </div>
+    </div>
     <div class="profile-actions" id="profile-actions"></div>
   </div>
 </div>
 
 <footer>
-  <span>J.B.C Crome — société de transport virtuelle ETS2 / TruckersMP</span>
-  <span>Fait avec un peu de graisse et beaucoup de chrome ✨</span>
+  <div class="footer-shell">
+    <span>J.B.C Crome — société de transport virtuelle ETS2 / TruckersMP</span>
+    <span>Fait avec un peu de graisse et beaucoup de chrome ✨</span>
+  </div>
 </footer>
 
 <script>
@@ -878,6 +909,15 @@
     return `<span class="avatar">${initials(m.pseudo)}</span>`;
   }
 
+  // attributs data-* communs posés sur chaque carte, utilisés ensuite par la modale profil
+  function memberDataAttrs(m){
+    let attrs = '';
+    if(m.avatar) attrs += ` data-avatar="${escapeHtml(m.avatar)}"`;
+    if(m.id) attrs += ` data-id="${escapeHtml(m.id)}"`;
+    if(m.joinedAt) attrs += ` data-joined="${escapeHtml(m.joinedAt)}"`;
+    return attrs;
+  }
+
   function cardsHTML(list, roleLabel, roleKey){
     if(!list || list.length === 0){
       return '<div class="empty-state">Aucun membre pour ce rôle actuellement.</div>';
@@ -885,7 +925,7 @@
     return list.map((m, i) => `
       <div class="team-card" tabindex="0" style="animation-delay:${Math.min(i,10) * 45}ms"
         data-pseudo="${escapeHtml(m.pseudo)}" data-role-label="${escapeHtml(roleLabel)}" data-role-key="${roleKey}"
-        ${m.avatar ? `data-avatar="${escapeHtml(m.avatar)}"` : ''} ${m.id ? `data-id="${escapeHtml(m.id)}"` : ''}>
+        ${memberDataAttrs(m)}>
         ${avatarHTML(m)}
         <div class="info">
           <span class="pseudo">${escapeHtml(m.pseudo)}</span>
@@ -901,7 +941,7 @@
     return list.map(m => `
       <div class="spotlight-card" tabindex="0"
         data-pseudo="${escapeHtml(m.pseudo)}" data-role-label="${escapeHtml(roleLabel)}" data-role-key="${roleKey}"
-        ${m.avatar ? `data-avatar="${escapeHtml(m.avatar)}"` : ''} ${m.id ? `data-id="${escapeHtml(m.id)}"` : ''}>
+        ${memberDataAttrs(m)}>
         <svg class="crown" viewBox="0 0 24 24" fill="currentColor"><path d="M2 18h20l-1.5-9-4.5 4-4-6-4 6-4.5-4L2 18z"/></svg>
         ${avatarHTML(m)}
         <div class="info">
@@ -972,7 +1012,18 @@ async function syncTeam(){
   const actionsEl = document.getElementById('profile-actions');
   const cardInner = document.getElementById('profile-card-inner');
   const equipe = document.getElementById('equipe');
+  const statKmEl = document.getElementById('profile-stat-km');
+  const statConvoisEl = document.getElementById('profile-stat-convois');
+  const statAncienneteEl = document.getElementById('profile-stat-anciennete');
   if(!modal || !equipe) return;
+
+  // Endpoint du classement, réutilisé pour récupérer km / convois par membre.
+  // Adapte les noms de champs (STATS_FIELDS) si la réponse de l'API diffère.
+  const STATS_API_URL = 'https://caviar-gatherer-matriarch.ngrok-free.dev/api/classement';
+  const STATS_FIELDS = { id: 'id', pseudo: 'pseudo', km: 'km', convois: 'convois' };
+
+  let statsCache = null;   // liste brute renvoyée par l'API, mise en cache le temps d'une session
+  let statsPromise = null; // évite les appels concurrents multiples
 
   const ROLE_STYLES = {
     patron:   { accent:'#ffcf6b', glow:'rgba(255,207,107,.14)', border:'rgba(255,207,107,.4)' },
@@ -987,12 +1038,91 @@ async function syncTeam(){
     return (clean.slice(0,2) || '??').toUpperCase();
   }
 
+  function formatKm(n){
+    return new Intl.NumberFormat('fr-FR').format(Math.round(n)) + ' km';
+  }
+
+  // Transforme une date d'arrivée en "3 mois" / "1 an" / "2 ans" etc.
+  function formatAnciennete(dateStr){
+    const debut = new Date(dateStr);
+    if(isNaN(debut)) return null;
+    const jours = Math.floor((Date.now() - debut.getTime()) / 86400000);
+    if(jours < 30) return jours <= 1 ? "1 jour" : jours + " jours";
+    const mois = Math.floor(jours / 30);
+    if(mois < 12) return mois <= 1 ? "1 mois" : mois + " mois";
+    const ans = Math.floor(mois / 12);
+    return ans <= 1 ? "1 an" : ans + " ans";
+  }
+
+  function setStatLoading(){
+    [statKmEl, statConvoisEl, statAncienneteEl].forEach(el => {
+      el.textContent = '…';
+      el.classList.add('loading');
+    });
+  }
+
+  function setStat(el, value){
+    el.textContent = (value === null || value === undefined || value === '') ? '—' : value;
+    el.classList.remove('loading');
+  }
+
+  async function loadStatsList(){
+    if(statsCache) return statsCache;
+    if(statsPromise) return statsPromise;
+    statsPromise = fetch(STATS_API_URL, {
+      cache: 'no-store',
+      headers: { 'ngrok-skip-browser-warning': '1' }
+    })
+      .then(res => { if(!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+      .then(data => {
+        statsCache = Array.isArray(data) ? data : (data.classement || data.membres || []);
+        return statsCache;
+      })
+      .catch(err => {
+        console.warn('[profile-stats] API classement indisponible.', err);
+        statsCache = [];
+        return statsCache;
+      });
+    return statsPromise;
+  }
+
+  function findMemberStats(list, discordId, pseudo){
+    if(!list) return null;
+    if(discordId){
+      const byId = list.find(e => String(e[STATS_FIELDS.id]) === String(discordId));
+      if(byId) return byId;
+    }
+    if(pseudo){
+      const pLower = pseudo.toLowerCase();
+      return list.find(e => String(e[STATS_FIELDS.pseudo] || '').toLowerCase() === pLower) || null;
+    }
+    return null;
+  }
+
+  async function fillStats(discordId, pseudo, joinedAt){
+    setStat(statAncienneteEl, formatAnciennete(joinedAt) || (joinedAt ? '—' : '—'));
+
+    const list = await loadStatsList();
+    const entry = findMemberStats(list, discordId, pseudo);
+
+    if(entry){
+      const km = entry[STATS_FIELDS.km];
+      const convois = entry[STATS_FIELDS.convois];
+      setStat(statKmEl, (km !== undefined && km !== null) ? formatKm(km) : '—');
+      setStat(statConvoisEl, (convois !== undefined && convois !== null) ? convois : '—');
+    }else{
+      setStat(statKmEl, '—');
+      setStat(statConvoisEl, '—');
+    }
+  }
+
   function openProfile(card){
     const pseudo = card.dataset.pseudo || 'Membre';
     const roleLabel = card.dataset.roleLabel || '—';
     const roleKey = card.dataset.roleKey || 'chauffeurs';
     const avatarUrl = card.dataset.avatar || '';
     const discordId = card.dataset.id || '';
+    const joinedAt = card.dataset.joined || '';
     const style = ROLE_STYLES[roleKey] || ROLE_STYLES.chauffeurs;
 
     cardInner.style.setProperty('--pm-accent', style.accent);
@@ -1020,6 +1150,9 @@ async function syncTeam(){
       link.textContent = 'Voir sur Discord';
       actionsEl.appendChild(link);
     }
+
+    setStatLoading();
+    fillStats(discordId, pseudo, joinedAt);
 
     modal.classList.add('open');
     closeBtn.focus();
