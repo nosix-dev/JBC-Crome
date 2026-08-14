@@ -407,6 +407,59 @@
   .preloader-status{font-family:'Space Mono', monospace; font-size:9.5px; letter-spacing:2px; text-transform:uppercase; color:rgba(214,205,190,.4);}
   @keyframes preloaderSpin{to{transform:rotate(360deg);}}
 
+  /* ---- A propos additions ---- */
+
+  .route-strip{
+    display:flex; align-items:stretch; gap:0; margin-top:44px; flex-wrap:wrap;
+    opacity:0; animation:riseIn .8s ease forwards .15s;
+  }
+  .route-chip{
+    display:flex; flex-direction:column; justify-content:center; gap:6px;
+    padding:16px 26px; background:var(--panel-2); border:1px solid var(--hairline); border-radius:6px;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.04);
+  }
+  .route-chip-value{font-family:'Anton', sans-serif; font-size:16px; letter-spacing:.5px; text-transform:uppercase; color:var(--chrome-1);}
+  .route-chip-label{font-family:'Space Mono', monospace; font-size:9.5px; letter-spacing:1.5px; text-transform:uppercase; color:var(--amber);}
+  .route-chip-sep{width:14px; display:flex; align-items:center; justify-content:center;}
+  .route-chip-sep::after{content:""; width:4px; height:4px; border-radius:50%; background:var(--chrome-3);}
+  @media (max-width:600px){ .route-chip-sep{display:none;} .route-strip{gap:10px;} .route-chip{flex:1 1 130px;} }
+
+  .road{position:relative; max-width:760px; padding-left:38px;}
+  .road::before{
+    content:""; position:absolute; left:9px; top:6px; bottom:6px; width:2px;
+    background:repeating-linear-gradient(180deg, var(--amber) 0 18px, transparent 18px 32px);
+    opacity:.55;
+  }
+  .road-stop{position:relative; padding-bottom:44px;}
+  .road-stop:last-child{padding-bottom:0;}
+  .road-stop-marker{
+    position:absolute; left:-38px; top:2px; width:20px; height:20px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, var(--chrome-1), var(--chrome-3) 70%);
+    box-shadow:0 0 0 4px var(--asphalt), 0 0 14px var(--amber-glow);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .road-stop-marker::after{content:""; width:7px; height:7px; border-radius:50%; background:var(--amber); box-shadow:0 0 8px var(--amber-glow);}
+  .road-pk{
+    font-family:'Space Mono', monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--amber); font-weight:700; margin-bottom:8px; display:block;
+  }
+  .road-stop h3{font-family:'Anton', sans-serif; font-size:18px; text-transform:uppercase; letter-spacing:.4px; color:var(--chrome-1); margin-bottom:8px;}
+  .road-stop p{color:var(--chrome-3); font-size:14px; line-height:1.65; max-width:520px;}
+
+  .join-band{
+    background:
+      repeating-linear-gradient(135deg, rgba(0,0,0,.12) 0 10px, transparent 10px 20px),
+      linear-gradient(135deg, var(--panel-2) 0%, var(--panel) 60%, var(--asphalt) 100%);
+    border-radius:10px; padding:56px 6vw;
+    display:flex; align-items:center; justify-content:space-between; gap:30px; flex-wrap:wrap;
+    border:1px solid rgba(93,168,255,.22); box-shadow:var(--shadow-hard);
+  }
+  .join-band h2{font-family:'Anton', sans-serif; font-size:clamp(24px,3.4vw,36px); text-transform:uppercase; color:var(--chrome-1); max-width:440px; line-height:1.15;}
+  .join-band p{color:var(--chrome-3); margin-top:10px; max-width:400px; font-size:14px; line-height:1.6;}
+
+  .plates-4{max-width:1100px; grid-template-columns:repeat(4,1fr); margin-top:52px;}
+  @media (max-width:980px){ .plates-4{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:600px){ .plates-4{grid-template-columns:1fr;} }
 </style>
 </head>
 <body>
@@ -442,7 +495,30 @@
       <h2>C'est quoi J.B.C Crome&nbsp;?</h2>
       <p>J.B.C Crome est une société de transport virtuelle (VTC) sur Euro Truck Simulator 2 et TruckersMP. On roule ensemble, on organise des convois, et on partage la même passion de la route — avec une finition chromée.</p>
     </div>
-    <div class="plates">
+
+    <div class="route-strip">
+      <div class="route-chip">
+        <span class="route-chip-value">ETS2 · TruckersMP</span>
+        <span class="route-chip-label">Terrain de jeu</span>
+      </div>
+      <div class="route-chip-sep"></div>
+      <div class="route-chip">
+        <span class="route-chip-value">Convois</span>
+        <span class="route-chip-label">Réguliers</span>
+      </div>
+      <div class="route-chip-sep"></div>
+      <div class="route-chip">
+        <span class="route-chip-value">Discord</span>
+        <span class="route-chip-label">QG de la société</span>
+      </div>
+      <div class="route-chip-sep"></div>
+      <div class="route-chip">
+        <span class="route-chip-value">Chrome</span>
+        <span class="route-chip-label">Signature</span>
+      </div>
+    </div>
+
+    <div class="plates plates-4">
     <div class="plate">
       <span class="num">01</span>
       <h3>Le Discord</h3>
@@ -453,12 +529,68 @@
       <h3>L'esprit</h3>
       <p>Pas de hiérarchie lourde, pas de chichis. Juste des routiers virtuels qui aiment rouler ensemble, brillants comme du chrome fraîchement poli.</p>
     </div>
+    <div class="plate">
+      <span class="num">03</span>
+      <h3>Les convois</h3>
+      <p>Des sorties organisées sur les routes d'Europe, en groupe et en musique, du départ jusqu'à la livraison.</p>
+    </div>
+    <div class="plate">
+      <span class="num">04</span>
+      <h3>Le recrutement</h3>
+      <p>Toujours ouvert aux nouveaux routiers motivés, débutants ou vétérans du bitume virtuel.</p>
+    </div>
+  </div>
+</section>
+
+<section id="parcours">
+  <div class="section-head">
+    <span class="eyebrow">Chronologie</span>
+    <h2>Notre route jusqu'ici</h2>
+    <p>Chaque société a son propre trajet. Voici les bornes kilométriques du nôtre.</p>
+  </div>
+  <div class="road">
+    <div class="road-stop">
+      <div class="road-stop-marker"></div>
+      <span class="road-pk">PK 0 — La création</span>
+      <h3>J.B.C Crome prend la route</h3>
+      <p>Une poignée de routiers motivés lance la société, avec l'idée simple de rouler ensemble et de le faire bien.</p>
+    </div>
+    <div class="road-stop">
+      <div class="road-stop-marker"></div>
+      <span class="road-pk">PK 1 — Premier convoi</span>
+      <h3>La communauté prend forme</h3>
+      <p>Le premier convoi officiel réunit toute l'équipe sur les routes d'Europe, entre annonces Discord et vocaux animés.</p>
+    </div>
+    <div class="road-stop">
+      <div class="road-stop-marker"></div>
+      <span class="road-pk">PK 2 — Ouverture</span>
+      <h3>Le recrutement s'ouvre</h3>
+      <p>Les portes s'ouvrent à de nouveaux routiers pour agrandir la flotte, sans jamais perdre l'esprit d'origine.</p>
+    </div>
+    <div class="road-stop">
+      <div class="road-stop-marker"></div>
+      <span class="road-pk">PK 3 — Aujourd'hui</span>
+      <h3>La route continue</h3>
+      <p>Convoi après convoi, la société roule toujours, chrome brillant et moteur qui tourne rond.</p>
+    </div>
+  </div>
+</section>
+
+<section id="rejoindre">
+  <div class="join-band">
+    <div>
+      <h2>Prêt à prendre la route&nbsp;?</h2>
+      <p>Rejoins le Discord, viens dire bonjour et enfile ta ceinture pour le prochain convoi.</p>
+    </div>
+    <a href="discord.html" class="btn btn-discord">Rejoindre le Discord</a>
   </div>
 </section>
 
 <footer>
-  <span>J.B.C Crome — société de transport virtuelle ETS2 / TruckersMP</span>
-  <span>Fait avec un peu de graisse et beaucoup de chrome ✨</span>
+  <div class="footer-shell">
+    <span>J.B.C Crome — société de transport virtuelle ETS2 / TruckersMP</span>
+    <span>Fait avec un peu de graisse et beaucoup de chrome ✨</span>
+  </div>
 </footer>
 
 <script>
