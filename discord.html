@@ -243,6 +243,30 @@
   .discord-widget iframe{border-radius:10px; box-shadow:var(--shadow-hard); max-width:100%;}
   @media (max-width:900px){ .discord-layout{flex-direction:column;} .discord-widget{width:100%;} .discord-widget iframe{width:100%;} }
 
+  /* Mini-stats live */
+  .discord-stats{display:flex; align-items:stretch; gap:0; margin-top:22px;}
+  .discord-stats .hero-stat{padding:12px 22px;}
+  .discord-stats .hero-stat-value{font-size:20px;}
+  @media (max-width:600px){ .discord-stats{justify-content:center;} }
+
+  /* Bloc bas de discord-band : bouton + QR code */
+  .discord-band-actions{
+    display:flex; align-items:center; gap:26px; flex-wrap:wrap; margin-top:28px;
+  }
+
+  /* QR Code */
+  .discord-qr{
+    display:flex; flex-direction:column; align-items:center; gap:10px; flex-shrink:0;
+  }
+  .discord-qr img{
+    display:block; border-radius:8px; border:1px solid var(--hairline);
+    box-shadow:var(--shadow-hard); background:var(--panel-2);
+  }
+  .discord-qr span{
+    font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:1.5px;
+    text-transform:uppercase; color:var(--chrome-3);
+  }
+
   .empty-state, .loading-state{
     grid-column:1/-1; text-align:center; padding:56px 20px; color:var(--chrome-3);
     border:1px dashed rgba(255,255,255,.14); border-radius:8px; font-size:14px;
@@ -379,6 +403,7 @@
   @media (max-width:760px){
     header{padding:16px 5vw;} nav ul{gap:6px;} nav a{font-size:10.5px; padding:7px 10px;}
     .plates{grid-template-columns:1fr;} .discord-band{flex-direction:column; text-align:center; align-items:center;}
+    .discord-band-actions{flex-direction:column;}
     #next-event-banner{padding:12px 5vw; gap:12px;} #next-event-banner .neb-countdown{display:none;}
     .event-row{flex-direction:column;}
     .event-badge{width:100%; flex-direction:row; justify-content:flex-start; gap:12px; padding:14px 20px; border-right:none; border-bottom:3px solid rgba(0,0,0,.25);}
@@ -439,10 +464,33 @@
       <div>
         <h2>Rejoins le convoi</h2>
         <p>Clique pour accéder au Discord de la société J.B.C Crome et retrouver les autres routiers.</p>
+
+        <!-- Mini-stats live -->
+        <div class="discord-stats" id="discord-stats">
+          <div class="hero-stat">
+            <span class="hero-stat-value" id="stat-online">--</span>
+            <span class="hero-stat-label">En ligne</span>
+          </div>
+          <div class="hero-stat-sep"></div>
+          <div class="hero-stat">
+            <span class="hero-stat-value" id="stat-voice">--</span>
+            <span class="hero-stat-label">En vocal</span>
+          </div>
+        </div>
+
+        <!-- Bouton rejoindre + QR code -->
+        <div class="discord-band-actions">
+          <a href="https://discord.gg/4vHDSQBEhw" target="_blank" rel="noopener" class="btn btn-chrome" style="font-size:15px; padding:18px 38px;">
+            Rejoindre → discord.gg/4vHDSQBEhw
+          </a>
+
+          <div class="discord-qr">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&bgcolor=15-23-38&color=245-247-251&margin=8&data=https://discord.gg/4vHDSQBEhw"
+                 alt="QR Code invitation Discord J.B.C Crome" width="140" height="140" loading="lazy">
+            <span>Scanne pour rejoindre</span>
+          </div>
+        </div>
       </div>
-      <a href="https://discord.gg/4vHDSQBEhw" target="_blank" rel="noopener" class="btn btn-chrome" style="font-size:15px; padding:18px 38px;">
-        Rejoindre → discord.gg/4vHDSQBEhw
-      </a>
     </div>
     <div class="discord-widget">
       <iframe src="https://discord.com/widget?id=1492875979142598716&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
@@ -603,8 +651,31 @@
 })();
 </script>
 
+<script>
+(function(){
+  const GUILD_ID = '1492875979142598716';
+  const onlineEl = document.getElementById('stat-online');
+  const voiceEl = document.getElementById('stat-voice');
+  if(!onlineEl || !voiceEl) return;
 
-
+  fetch(`https://discord.com/api/guilds/${GUILD_ID}/widget.json`)
+    .then(r => {
+      if(!r.ok) throw new Error('widget désactivé ou inaccessible');
+      return r.json();
+    })
+    .then(data => {
+      const membres = data.members || [];
+      const online = data.presence_count ?? membres.length;
+      const enVocal = membres.filter(m => m.channel_id).length;
+      onlineEl.textContent = online;
+      voiceEl.textContent = enVocal;
+    })
+    .catch(() => {
+      onlineEl.textContent = '?';
+      voiceEl.textContent = '?';
+    });
+})();
+</script>
 
 </body>
 </html>
