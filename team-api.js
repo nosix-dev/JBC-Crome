@@ -1,7 +1,7 @@
 // team-api.js
-// Module qui expose GET /api/team, GET /api/stats et GET /api/classement pour le site J.B.C Crome,
-// exposé en HTTPS via un tunnel ngrok (domaine gratuit fixe, binaire officiel
-// piloté directement, sans wrapper npm tiers).
+// Module qui expose GET /api/team, GET /api/stats, GET /api/classement et GET /api/events
+// pour le site J.B.C Crome, exposé en HTTPS via un tunnel ngrok (domaine gratuit fixe,
+// binaire officiel piloté directement, sans wrapper npm tiers).
 //
 // Utilisation dans index.js :
 //   const { startTeamApi } = require("./team-api");
@@ -11,6 +11,13 @@
 //   NGROK_AUTHTOKEN = ton authtoken (dashboard ngrok -> "Your Authtoken")
 //   NGROK_DOMAIN    = ton domaine gratuit assigné (dashboard ngrok -> Gateway > Domains,
 //                     type xxxxx.ngrok-free.dev). NE PAS mettre https:// devant.
+//
+// Structure attendue dans data.json (par guild) pour les stats /api/team :
+//   guilds[guildId].scarabgroups   = { [discordId]: "PseudoTrucksBook", ... }
+//   guilds[guildId].webhookDrivers = { [pseudoTrucksBook]: { km, trajets }, ... }
+//   guilds[guildId].convois        = [ { participants: [discordId, ...] }, ... ]
+// scarabgroups fait le lien entre un membre Discord et son pseudo côté TrucksBook,
+// pour retrouver ses stats webhook (km/missions) et compter ses convois.
 
 const fs = require("fs");
 const path = require("path");
@@ -33,17 +40,6 @@ const ROLE_IDS = {
   chauffeurs: "1495111013949902999",
   chauffeurs_essai: "1527806431519314183",
 };
-
-// Rôles comptés comme "chauffeurs" pour /api/stats (hero-stats du site) :
-// union de tous les rôles de la société, hors rôle "discord" (simple rôle de
-// vérification, pas un rôle de chauffeur). Un membre cumulant plusieurs de
-// ces rôles (ex: patron qui roule aussi) n'est compté qu'une seule fois.
-const ROLES_CHAUFFEURS_STATS = [
-  ROLE_IDS.patron,
-  ROLE_IDS.gerants,
-  ROLE_IDS.chauffeurs,
-  ROLE_IDS.chauffeurs_essai,
-];
 
 const DATA_PATH = path.join(__dirname, "data.json");
 
@@ -133,11 +129,65 @@ async function getGuildMembers(guild) {
   return membersFetchPromise;
 }
 
+// ==== ANCIENNETÉ (durée depuis l'arrivée sur le serveur) ====
+function calculerAnciennete(joinedAt) {
+  if (!joinedAt) return null;
+
+  const maintenant = new Date();
+  const debut = new Date(joinedAt);
+
+  let mois = (maintenant.getFullYear() - debut.getFullYear()) * 12
+    + (maintenant.getMonth() - debut.getMonth());
+  if (maintenant.getDate() < debut.getDate()) mois -= 1;
+  if (mois < 0) mois = 0;
+
+  if (mois < 1) return "< 1 mois";
+  if (mois < 12) return `${mois} mois`;
+
+  const ans = Math.floor(mois / 12);
+  const moisRestants = mois % 12;
+  if (moisRestants === 0) return `${ans} an${ans > 1 ? "s" : ""}`;
+  return `${ans} an${ans > 1 ? "s" : ""} ${moisRestants} mois`;
+}
+
+// ==== STATS PAR MEMBRE (km / missions / convois) via scarabgroups + TrucksBook ====
+function construireStatsParMembre(guildData, members) {
+  const scarabgroups = guildData.scarabgroups || {};
+  const webhookDrivers = guildData.webhookDrivers || {};
+
+  // Nombre de convois par ID Discord, comptés depuis les participants
+  // (même logique que buildClassementData).
+  const compteurConvois = {};
+  for (const convoi of guildData.convois || []) {
+    for (const userId of convoi.participants || []) {
+      compteurConvois[userId] = (compteurConvois[userId] || 0) + 1;
+    }
+  }
+
+  const statsParDiscordId = {};
+  for (const member of members.values()) {
+    const pseudoTrucksBook = scarabgroups[member.id] || null;
+    const statsWebhook = pseudoTrucksBook ? webhookDrivers[pseudoTrucksBook] : null;
+
+    statsParDiscordId[member.id] = {
+      km: (statsWebhook && statsWebhook.km) || 0,
+      convois: compteurConvois[member.id] || 0,
+      anciennete: calculerAnciennete(member.joinedAt),
+    };
+  }
+
+  return statsParDiscordId;
+}
+
 async function buildTeamData(client) {
   const guild = resoudreGuild(client);
   if (!guild) throw new Error("Aucun serveur Discord disponible pour le bot.");
 
   const members = await getGuildMembers(guild);
+  const botData = chargerDonneesBot();
+  const guildData = (botData.guilds && botData.guilds[guild.id]) || {};
+  const statsParDiscordId = construireStatsParMembre(guildData, members);
+
   const result = {};
 
   for (const [key, roleId] of Object.entries(ROLE_IDS)) {
@@ -150,10 +200,16 @@ async function buildTeamData(client) {
 
     result[key] = members
       .filter((m) => m.roles.cache.has(role.id))
-      .map((m) => ({
-        pseudo: m.displayName || m.user.username,
-        avatar: m.displayAvatarURL({ extension: "png", size: 128 }),
-      }));
+      .map((m) => {
+        const stats = statsParDiscordId[m.id] || { km: 0, convois: 0, anciennete: null };
+        return {
+          pseudo: m.displayName || m.user.username,
+          avatar: m.displayAvatarURL({ extension: "png", size: 128 }),
+          km: stats.km,
+          convois: stats.convois,
+          anciennete: stats.anciennete,
+        };
+      });
   }
 
   return result;
@@ -172,13 +228,10 @@ async function buildStatsData(client) {
   if (!guild) throw new Error("Aucun serveur Discord disponible pour le bot.");
 
   const members = await getGuildMembers(guild);
-
-  // Union des rôles de la société (patron/gérants/chauffeurs/chauffeurs à
-  // l'essai) : chaque membre n'est compté qu'une fois, même s'il cumule
-  // plusieurs de ces rôles.
-  const nbChauffeurs = members.filter((m) =>
-    ROLES_CHAUFFEURS_STATS.some((roleId) => m.roles.cache.has(roleId))
-  ).size;
+  const roleChauffeurs = guild.roles.cache.get(ROLE_IDS.chauffeurs);
+  const nbChauffeurs = roleChauffeurs
+    ? members.filter((m) => m.roles.cache.has(roleChauffeurs.id)).size
+    : 0;
 
   const botData = chargerDonneesBot();
   let km = 0;
