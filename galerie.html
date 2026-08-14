@@ -104,20 +104,14 @@
   }
   .section-head p{margin-top:14px; color:var(--chrome-3); line-height:1.7; font-size:15px;}
 
-  
   .albums-grid{
-    display:flex; gap:0; overflow-x:auto; padding:8px 0 26px; scroll-snap-type:x proximity;
-    -webkit-overflow-scrolling:touch;
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:26px;
+    padding:8px 0 26px;
   }
-  .albums-grid::-webkit-scrollbar{height:6px;}
-  .albums-grid::-webkit-scrollbar-track{background:rgba(255,255,255,.04); border-radius:3px;}
-  .albums-grid::-webkit-scrollbar-thumb{background:var(--amber-dim); border-radius:3px;}
   .filmstrip-card{
-    flex:0 0 290px; scroll-snap-align:start; margin-right:22px;
     background:#0c0b0a; border-radius:5px; padding:16px 14px 14px; position:relative; cursor:pointer;
     transition:transform .25s ease, box-shadow .25s ease;
   }
-  .filmstrip-card:last-child{margin-right:0;}
   .filmstrip-card:hover{transform:translateY(-7px); box-shadow:var(--shadow-hard);}
   .filmstrip-card::before, .filmstrip-card::after{
     content:""; position:absolute; left:0; right:0; height:13px;
@@ -237,7 +231,7 @@
     <p>Une sélection de photos de convois et de la flotte J.B.C Crome — clique sur un album pour l'ouvrir.</p>
   </div>
 
-  <span class="filmstrip-hint">← Fais glisser pour parcourir la pellicule →</span>
+  <span class="filmstrip-hint">Toute la flotte, album par album</span>
   <div id="albums-grid" class="albums-grid">
     <div class="loading-state">Chargement des albums…</div>
   </div>
