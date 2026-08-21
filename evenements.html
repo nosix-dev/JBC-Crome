@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Événements J.B.C Crome</title>
+<title>Calendrier J.B.C Crome</title>
 <link rel="icon" type="image/png" href="LogoV3.png">
 <link rel="stylesheet" href="styles-theme.css">
 <style>
@@ -22,6 +22,8 @@
     --amber-glow:rgba(93,168,255,.24);
     --safety-red:#3b82f6;
     --safety-red-dark:#18365d;
+    --open-color:#2dd4bf;
+    --closed-color:#e05c4d;
     --shadow-hard:0 18px 45px rgba(2,10,20,.45);
   }
 
@@ -93,113 +95,6 @@
     background:var(--amber); box-shadow:0 0 8px var(--amber-glow);
   }
 
-  #next-event-banner{
-    position:relative; z-index:40; display:none;
-    align-items:center; gap:22px;
-    padding:13px 6vw;
-    background:
-      repeating-linear-gradient(135deg, rgba(0,0,0,.18) 0 10px, transparent 10px 20px),
-      linear-gradient(90deg, var(--safety-red-dark), var(--safety-red) 60%, var(--safety-red-dark));
-    color:#fff5ee;
-    flex-wrap:wrap;
-    border-bottom:1px solid rgba(0,0,0,.3);
-  }
-  #next-event-banner.visible{display:flex;}
-  #next-event-banner .neb-label{
-    font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase;
-    background:rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.3);
-    border-radius:3px; padding:6px 12px; flex-shrink:0;
-  }
-  #next-event-banner .neb-info{flex:1; min-width:200px; display:flex; flex-direction:column; gap:2px;}
-  #next-event-banner .neb-title{font-family:'Anton', sans-serif; font-size:16px; text-transform:uppercase; letter-spacing:.3px;}
-  #next-event-banner .neb-meta{font-size:12.5px; color:rgba(255,255,255,.85); font-family:'Space Mono', monospace;}
-  #next-event-banner .neb-countdown{
-    font-family:'Space Mono', monospace; font-size:13px; font-weight:700;
-    background:rgba(0,0,0,.28); border-radius:4px; padding:8px 14px; text-align:center; flex-shrink:0; white-space:nowrap;
-  }
-  #next-event-banner .neb-btn{
-    flex-shrink:0; font-size:12px; letter-spacing:1px; text-transform:uppercase; font-weight:700;
-    background:#fff5ee; color:var(--safety-red-dark); padding:11px 22px; border-radius:3px;
-    transition:transform .2s ease;
-  }
-  #next-event-banner .neb-btn:hover{transform:translateY(-2px);}
-
-  .hero{
-    position:relative; min-height:90vh;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    text-align:center; padding:0 6vw; z-index:2;
-  }
-  .hero-stats{display:flex; align-items:stretch; justify-content:center; gap:0; margin-bottom:38px; opacity:0; animation:riseIn .8s ease forwards 0s;}
-  .hero-stat{
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    padding:16px 30px; min-width:100px;
-    background:var(--panel-2);
-    border:1px solid var(--hairline);
-    border-radius:6px;
-    box-shadow:inset 0 2px 6px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.04);
-  }
-  .hero-stat-value{
-    font-family:'Space Mono', monospace; font-weight:700;
-    font-size:clamp(20px,2.6vw,28px); letter-spacing:1px;
-    color:var(--chrome-1);
-    text-shadow:0 0 14px var(--amber-glow);
-    font-variant-numeric:tabular-nums;
-  }
-  .hero-stat-label{margin-top:9px; font-size:9.5px; letter-spacing:2px; text-transform:uppercase; color:var(--amber);}
-  .hero-stat-sep{width:14px; display:flex; align-items:center; justify-content:center;}
-  .hero-stat-sep::after{content:""; width:4px; height:4px; border-radius:50%; background:var(--chrome-3);}
-  @media (max-width:600px){ .hero-stat{padding:14px 16px; min-width:0;} }
-
-  .hero-eyebrow{
-    font-family:'Space Mono', monospace;
-    font-size:11.5px; letter-spacing:3px; text-transform:uppercase;
-    color:var(--amber); font-weight:700; margin-bottom:24px;
-    opacity:0; animation:riseIn .8s ease forwards .1s;
-  }
-  .hero h1{
-    font-family:'Anton', sans-serif;
-    font-size:clamp(52px, 11vw, 138px);
-    line-height:.9; letter-spacing:1px; text-transform:uppercase;
-    background:linear-gradient(180deg,
-      #fffaf2 0%, #ece2d0 14%, #a89c8a 30%, #5c5346 46%,
-      #f6efe2 52%, #cfc3af 60%, #857a68 74%, #f0e7d8 88%, #fffaf2 100%);
-    -webkit-background-clip:text; background-clip:text; color:transparent;
-    background-size:100% 220%;
-    animation:chromeSheen 8s ease-in-out infinite, riseIn .9s ease forwards .25s;
-    opacity:0;
-    filter:drop-shadow(0 8px 24px rgba(0,0,0,.6));
-  }
-  .hero h1 span{display:block;}
-  @keyframes chromeSheen{0%,100%{background-position:0% 0%;} 50%{background-position:0% 100%;}}
-  @keyframes riseIn{from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);}}
-  .hero p.tag{margin-top:24px; max-width:560px; font-size:16px; line-height:1.6; color:var(--chrome-3); opacity:0; animation:riseIn .8s ease forwards .45s;}
-  .hero-cta{margin-top:42px; display:flex; gap:16px; flex-wrap:wrap; justify-content:center; opacity:0; animation:riseIn .8s ease forwards .6s;}
-
-  .btn{
-    display:inline-flex; align-items:center; gap:10px;
-    padding:15px 30px; font-size:13px; letter-spacing:1.5px; text-transform:uppercase; font-weight:700;
-    border-radius:3px; cursor:pointer; border:none; font-family:'Work Sans', sans-serif;
-    transition:transform .2s ease, box-shadow .2s ease;
-  }
-  .btn:hover{transform:translateY(-2px);}
-  .btn-chrome{
-    background:linear-gradient(180deg,#fbf7ef 0%, #d6cdbe 45%, #8a7f70 50%, #e5dccb 60%, #fbf7ef 100%);
-    color:#171310; box-shadow:0 14px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.8);
-  }
-  .btn-chrome:hover{box-shadow:0 18px 40px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.9);}
-  .btn-discord{
-    background:linear-gradient(180deg, #6c81ff 0%, #4a5ce0 100%); color:#fff;
-    box-shadow:0 14px 30px rgba(74,92,224,.35), inset 0 1px 0 rgba(255,255,255,.35);
-  }
-  .btn-discord:hover{box-shadow:0 18px 40px rgba(74,92,224,.5), inset 0 1px 0 rgba(255,255,255,.4);}
-  .btn-ghost{background:transparent; color:var(--chrome-2); border:1px solid rgba(255,138,30,.35);}
-  .btn-ghost:hover{border-color:var(--amber); color:var(--amber);}
-  .btn-truckbook{
-    background:linear-gradient(180deg, #ffb04c 0%, #e08a1e 100%); color:#1a1200;
-    box-shadow:0 14px 30px rgba(224,138,30,.35), inset 0 1px 0 rgba(255,255,255,.35);
-  }
-  .btn-truckbook:hover{box-shadow:0 18px 40px rgba(224,138,30,.5), inset 0 1px 0 rgba(255,255,255,.4);}
-
   section{position:relative; z-index:2; padding:100px 6vw; scroll-margin-top:90px;}
   .section-head{max-width:640px; margin-bottom:52px;}
   .eyebrow{
@@ -213,160 +108,94 @@
   }
   .section-head p{margin-top:14px; color:var(--chrome-3); line-height:1.7; font-size:15px;}
 
-  .plates{display:grid; grid-template-columns:repeat(2,1fr); gap:20px; max-width:760px;}
-  .plate{
+  /* ===== Calendrier ===== */
+  .cal-wrap{
     background:linear-gradient(160deg, var(--panel-2), var(--panel));
-    border:1px solid var(--hairline); border-radius:6px; padding:30px 26px;
-    position:relative; transition:transform .25s ease, border-color .25s ease;
+    border:1px solid var(--hairline); border-radius:12px;
+    padding:26px 26px 32px; box-shadow:var(--shadow-hard);
   }
-  .plate::before, .plate::after{
-    content:""; position:absolute; top:12px; width:6px; height:6px; border-radius:50%;
-    background:radial-gradient(circle at 35% 30%, #6b6156, #2b2620);
-    box-shadow:inset 0 1px 1px rgba(0,0,0,.6);
+  .cal-toolbar{
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;
+    margin-bottom:24px;
   }
-  .plate::before{left:12px;} .plate::after{right:12px;}
-  .plate:hover{transform:translateY(-5px); border-color:rgba(255,138,30,.3);}
-  .plate .num{font-family:'Space Mono', monospace; font-size:12px; color:var(--amber); letter-spacing:2px; margin-bottom:16px; display:block;}
-  .plate h3{font-family:'Anton', sans-serif; font-size:19px; text-transform:uppercase; letter-spacing:.5px; margin-bottom:10px; color:var(--chrome-1);}
-  .plate p{color:var(--chrome-3); font-size:14px; line-height:1.65;}
+  .cal-legend{display:flex; gap:20px; flex-wrap:wrap;}
+  .cal-legend-item{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:1.5px;
+    text-transform:uppercase; color:var(--chrome-3); font-weight:700;
+  }
+  .cal-legend-dot{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
+  .cal-legend-dot.open{background:var(--open-color); box-shadow:0 0 8px var(--open-color);}
+  .cal-legend-dot.closed{background:var(--closed-color); box-shadow:0 0 8px var(--closed-color);}
 
-  .discord-band{
-    background:linear-gradient(135deg, #241c14 0%, #2c2117 45%, #1a140e 100%);
-    border-radius:10px; padding:60px 6vw;
-    display:flex; align-items:center; justify-content:space-between; gap:36px; flex-wrap:wrap;
-    border:1px solid rgba(255,138,30,.22); box-shadow:var(--shadow-hard);
+  .cal-nav{display:flex; align-items:center; gap:16px;}
+  .cal-nav-btn{
+    width:36px; height:36px; border-radius:50%; border:1px solid var(--hairline);
+    background:rgba(255,255,255,.04); color:var(--chrome-1);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    font-size:16px; transition:background .2s ease, border-color .2s ease;
   }
-  .discord-band h2{font-family:'Anton', sans-serif; font-size:clamp(26px,3.8vw,42px); text-transform:uppercase; color:#fff5ea; max-width:480px; line-height:1.12;}
-  .discord-band p{color:var(--chrome-3); margin-top:12px; max-width:420px; font-size:14px; line-height:1.6;}
-  .discord-layout{display:flex; gap:26px; flex-wrap:wrap; align-items:stretch;}
-  .discord-layout .discord-band{flex:1 1 420px;}
-  .discord-widget{flex:0 0 auto; display:flex; align-items:center; justify-content:center;}
-  .discord-widget iframe{border-radius:10px; box-shadow:var(--shadow-hard); max-width:100%;}
-  @media (max-width:900px){ .discord-layout{flex-direction:column;} .discord-widget{width:100%;} .discord-widget iframe{width:100%;} }
+  .cal-nav-btn:hover{background:rgba(93,168,255,.14); border-color:var(--amber);}
+  .cal-title{
+    font-family:'Anton', sans-serif; font-size:22px; letter-spacing:1px;
+    text-transform:uppercase; color:var(--chrome-1); min-width:220px; text-align:center;
+  }
+  .cal-today-btn{
+    font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase;
+    font-weight:700; color:var(--amber); background:rgba(93,168,255,.1);
+    border:1px solid rgba(93,168,255,.3); border-radius:20px; padding:8px 16px; cursor:pointer;
+    transition:background .2s ease, border-color .2s ease;
+  }
+  .cal-today-btn:hover{background:rgba(93,168,255,.2); border-color:var(--amber);}
 
-  .empty-state, .loading-state{
-    grid-column:1/-1; text-align:center; padding:56px 20px; color:var(--chrome-3);
-    border:1px dashed rgba(255,255,255,.14); border-radius:8px; font-size:14px;
+  .cal-daynames{
+    display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-bottom:8px;
   }
-  .sync-status{font-size:11px; letter-spacing:.5px; color:var(--chrome-3); display:inline-flex; align-items:center; gap:6px; font-family:'Space Mono', monospace;}
-  .sync-status::before{content:""; width:6px; height:6px; border-radius:50%; background:#888; flex-shrink:0;}
-  .sync-status.live::before{background:#68d97a; box-shadow:0 0 8px #68d97a;}
-  .sync-status.offline::before{background:#e05c4d;}
+  .cal-dayname{
+    font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--chrome-3); text-align:left; padding-left:4px; font-weight:700;
+  }
+  .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:8px;}
+  .cal-cell{
+    min-height:110px; border-radius:8px; padding:10px 10px;
+    background:rgba(255,255,255,.02); border:1px solid var(--hairline);
+    display:flex; flex-direction:column; gap:6px; transition:border-color .2s ease;
+  }
+  .cal-cell.other-month{opacity:.35;}
+  .cal-cell.today{border-color:var(--open-color); box-shadow:0 0 0 1px var(--open-color) inset;}
+  .cal-cell.has-open{background:rgba(45,212,191,.07); border-color:rgba(45,212,191,.35);}
+  .cal-cell.has-closed{background:rgba(224,92,77,.06); border-color:rgba(224,92,77,.3);}
+  .cal-daynum{
+    font-family:'Space Mono', monospace; font-size:13px; font-weight:700; color:var(--chrome-1);
+    display:flex; align-items:center; gap:6px;
+  }
+  .cal-cell.today .cal-daynum::after{
+    content:""; width:5px; height:5px; border-radius:50%; background:var(--open-color);
+    box-shadow:0 0 6px var(--open-color);
+  }
+  .cal-events{display:flex; flex-direction:column; gap:5px;}
+  .cal-event-pill{
+    display:block; font-size:10.5px; line-height:1.3; padding:5px 8px; border-radius:5px;
+    background:rgba(255,255,255,.06); color:var(--chrome-1); font-weight:600;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    border-left:3px solid var(--chrome-3); transition:transform .15s ease;
+  }
+  a.cal-event-pill:hover{transform:translateX(2px);}
+  .cal-event-pill.open{border-left-color:var(--open-color);}
+  .cal-event-pill.closed{border-left-color:var(--closed-color); opacity:.7;}
 
-  .team-role{margin-bottom:40px;} .team-role:last-child{margin-bottom:0;}
-  .role-title{
-    font-family:'Anton', sans-serif; font-size:15px; letter-spacing:1.5px; text-transform:uppercase;
-    color:var(--amber); margin-bottom:16px; display:flex; align-items:center; gap:12px;
+  .cal-loading, .cal-error{
+    text-align:center; padding:40px 20px; color:var(--chrome-3); font-size:14px;
   }
-  .role-title::after{content:""; flex:1; height:1px; background:linear-gradient(90deg, rgba(255,138,30,.3), transparent);}
-  .team-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:14px;}
-  .team-card{
-    display:flex; flex-direction:column; align-items:flex-start; text-align:left; gap:10px;
-    background:linear-gradient(160deg, var(--panel-2), var(--panel));
-    border:1px solid var(--hairline); border-radius:6px; padding:16px 18px;
-    transition:transform .22s ease, border-color .22s ease;
-  }
-  .team-card:hover{transform:translateY(-3px); border-color:rgba(255,138,30,.3);}
-  .team-card .avatar{
-    width:38px; height:38px; border-radius:50%; object-fit:cover;
-    display:flex; align-items:center; justify-content:center;
-    font-family:'Space Mono', monospace; font-size:12px; font-weight:700; letter-spacing:.5px;
-    background:linear-gradient(180deg,#fbf7ef 0%, #d6cdbe 45%, #8a7f70 50%, #e5dccb 60%, #fbf7ef 100%);
-    color:#171310;
-  }
-  .team-card .pseudo{display:block; font-size:14px; font-weight:600; color:var(--chrome-1);}
-  .team-card .role{display:block; font-size:10.5px; letter-spacing:.5px; text-transform:uppercase; color:var(--chrome-3);}
 
-  .month-group{margin-bottom:52px;} .month-group:last-child{margin-bottom:0;}
-  .month-title{font-family:'Anton', sans-serif; font-size:clamp(22px,3.2vw,32px); color:var(--chrome-1); text-transform:uppercase; margin-bottom:12px;}
-  .month-divider{width:100%; height:2px; background:linear-gradient(90deg, var(--amber), rgba(255,138,30,.1)); margin-bottom:26px;}
-  .event-row{
-    display:flex; background:linear-gradient(160deg, var(--panel-2), var(--panel));
-    border:1px solid var(--hairline); border-radius:8px; overflow:hidden; margin-bottom:20px;
-    transition:transform .25s ease, border-color .25s ease;
+  @media (max-width:760px){
+    header{padding:16px 5vw;} nav ul{gap:6px;} nav a{font-size:10.5px; padding:7px 10px;}
+    .cal-wrap{padding:18px 14px 24px;}
+    .cal-cell{min-height:74px; padding:6px 6px;}
+    .cal-dayname{font-size:9px;}
+    .cal-event-pill{font-size:9px; padding:4px 6px;}
+    .cal-title{font-size:17px; min-width:0;}
   }
-  .event-row:last-child{margin-bottom:0;}
-  .event-row:hover{transform:translateY(-4px); border-color:rgba(201,58,46,.45);}
-  .event-badge{
-    flex-shrink:0; width:104px;
-    background:
-      repeating-linear-gradient(135deg, rgba(0,0,0,.15) 0 8px, transparent 8px 16px),
-      linear-gradient(160deg, var(--safety-red), var(--safety-red-dark));
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    color:#fff5ee; text-align:center; border-right:3px solid rgba(0,0,0,.25);
-  }
-  .event-badge .day{font-family:'Anton', sans-serif; font-size:36px; line-height:1;}
-  .event-badge .month{font-family:'Space Mono', monospace; font-size:10px; letter-spacing:2px; margin-top:8px; text-transform:uppercase; opacity:.9;}
-  .event-content{flex:1; padding:22px 26px; display:flex; flex-direction:column; justify-content:center; gap:8px; min-width:0;}
-  .event-tag{
-    align-self:flex-start; font-family:'Space Mono', monospace;
-    font-size:10.5px; letter-spacing:1px; text-transform:uppercase; font-weight:700;
-    color:var(--amber); background:rgba(255,138,30,.08); border:1px solid rgba(255,138,30,.3);
-    border-radius:20px; padding:5px 13px;
-  }
-  .event-content h3{font-family:'Anton', sans-serif; font-size:clamp(16px,1.9vw,20px); text-transform:uppercase; color:var(--chrome-1); letter-spacing:.3px; line-height:1.3;}
-  .event-location{font-size:13px; color:var(--chrome-3); display:flex; align-items:center; gap:6px;}
-  .event-desc{font-size:14px; color:var(--chrome-3); line-height:1.6;}
-  .event-desc-list{list-style:none; font-size:14px; color:var(--chrome-3); line-height:1.7;}
-  .event-desc-list li{padding-left:16px; position:relative;}
-  .event-desc-list li::before{content:"›"; position:absolute; left:0; color:var(--amber);}
-  .event-image{flex-shrink:0; width:270px; position:relative; background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center;}
-  .event-image::before{content:""; position:absolute; inset:0; background:linear-gradient(90deg, rgba(19,17,16,.55) 0%, rgba(19,17,16,0) 45%);}
-  .event-image.no-image{background:linear-gradient(160deg, var(--panel), var(--asphalt));}
-  .event-arrow{
-    position:relative; z-index:2; width:50px; height:50px; border-radius:50%;
-    background:var(--amber); color:#1a1200; display:flex; align-items:center; justify-content:center;
-    font-size:22px; transition:transform .2s ease;
-  }
-  .event-arrow:hover{transform:scale(1.08);}
-
-  .albums-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:24px;}
-  .album-card{
-    background:linear-gradient(160deg, var(--panel-2), var(--panel));
-    border:1px solid var(--hairline); border-radius:10px; overflow:hidden; cursor:pointer;
-    transition:transform .25s ease, border-color .25s ease;
-  }
-  .album-card:hover{transform:translateY(-5px); border-color:rgba(255,138,30,.35);}
-  .album-cover{position:relative; aspect-ratio:16/10.5; background-size:cover; background-position:center;}
-  .album-cover-overlay{
-    position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end; padding:18px 20px;
-    background:linear-gradient(180deg, rgba(19,17,16,0) 35%, rgba(19,17,16,.55) 70%, rgba(19,17,16,.92) 100%);
-  }
-  .album-category{font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:2px; text-transform:uppercase; font-weight:700; color:var(--amber); margin-bottom:6px;}
-  .album-title{font-family:'Anton', sans-serif; font-size:18px; line-height:1.25; text-transform:uppercase; letter-spacing:.4px; color:var(--chrome-1);}
-  .album-body{padding:18px 20px 20px; display:flex; flex-direction:column; gap:14px;}
-  .album-body p{color:var(--chrome-3); font-size:13.5px; line-height:1.6; display:-webkit-box; -webkit-box-orient:vertical; line-clamp:3; -webkit-line-clamp:3; overflow:hidden;}
-  .album-footer{display:flex; justify-content:flex-end;}
-  .album-count-pill{
-    display:inline-flex; align-items:center; gap:8px; font-family:'Space Mono', monospace;
-    font-size:10.5px; letter-spacing:1px; text-transform:uppercase; font-weight:700; color:var(--chrome-1);
-    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.14); border-radius:30px; padding:8px 16px;
-    transition:border-color .2s ease, background .2s ease;
-  }
-  .album-card:hover .album-count-pill{border-color:rgba(255,138,30,.5); background:rgba(255,138,30,.1); color:var(--amber);}
-
-  #lightbox{
-    position:fixed; inset:0; z-index:200; background:rgba(8,7,6,.94); backdrop-filter:blur(6px);
-    display:none; flex-direction:column; align-items:center; justify-content:center; padding:5vh 5vw;
-    opacity:0; transition:opacity .25s ease;
-  }
-  #lightbox.open{display:flex; opacity:1;}
-  #lightbox img{max-width:100%; max-height:76vh; border-radius:8px; box-shadow:0 30px 70px rgba(0,0,0,.6); transform:scale(.96); transition:transform .25s ease;}
-  #lightbox.open img{transform:scale(1);}
-  #lightbox-info{margin-top:18px; max-width:620px; text-align:center;}
-  #lightbox-caption{color:var(--chrome-3); font-size:12px; letter-spacing:1px; text-transform:uppercase; font-family:'Space Mono', monospace;}
-  #lightbox-caption strong{color:var(--chrome-1);}
-  #lightbox-description{margin-top:8px; color:var(--chrome-2); font-size:14px; line-height:1.6;}
-  #lightbox-description:empty{display:none;}
-  #lightbox-close, #lightbox-prev, #lightbox-next{
-    position:absolute; border-radius:50%; background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,138,30,.25); color:var(--chrome-1);
-    display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background .2s ease, border-color .2s ease;
-  }
-  #lightbox-close:hover, #lightbox-prev:hover, #lightbox-next:hover{background:rgba(255,138,30,.14); border-color:var(--amber);}
-  #lightbox-close{top:26px; right:6vw; width:42px; height:42px; font-size:20px;}
-  #lightbox-prev, #lightbox-next{top:50%; transform:translateY(-50%); width:48px; height:48px; font-size:22px;}
-  #lightbox-prev{left:4vw;} #lightbox-next{right:4vw;}
 
   footer{
     padding:24px 6vw 20px; border-top:1px solid var(--hairline);
@@ -376,18 +205,6 @@
   }
   body.push-footer{display:flex; flex-direction:column; min-height:100vh;}
   body.push-footer footer{margin-top:auto;}
-
-  @media (max-width:760px){
-    header{padding:16px 5vw;} nav ul{gap:6px;} nav a{font-size:10.5px; padding:7px 10px;}
-    .plates{grid-template-columns:1fr;} .discord-band{flex-direction:column; text-align:center; align-items:center;}
-    #next-event-banner{padding:12px 5vw; gap:12px;} #next-event-banner .neb-countdown{display:none;}
-    .event-row{flex-direction:column;}
-    .event-badge{width:100%; flex-direction:row; justify-content:flex-start; gap:12px; padding:14px 20px; border-right:none; border-bottom:3px solid rgba(0,0,0,.25);}
-    .event-badge .day{font-size:26px;}
-    .event-image{width:100%; height:170px;}
-  }
-
-  #particles{position:fixed; inset:0; z-index:0; pointer-events:none; width:100%; height:100%;}
 
   #preloader{
     position:fixed; inset:0; z-index:999; background:var(--asphalt);
@@ -426,7 +243,7 @@
       <li><a href="index.html">Accueil</a></li>
       <li><a href="apropos.html">A propos</a></li>
       <li><a href="equipe.html">Équipe</a></li>
-      <li><a href="evenements.html" class="active">Événements</a></li>
+      <li><a href="calendrier.html" class="active">Calendrier</a></li>
       <li><a href="galerie.html">Galerie</a></li>
       <li><a href="discord.html">Discord</a></li>
       <li><a href="classement.html">Classement</a></li>
@@ -434,15 +251,40 @@
   </nav>
 </header>
 
-<section id="evenements">
+<section id="calendrier">
     <div class="section-head">
       <span class="eyebrow">Sur la route</span>
-      <h2>Événements</h2>
-      <p>Les prochains convois et événements organisés par J.B.C Crome. Rejoins-nous sur le Discord pour t'inscrire.</p>
+      <h2>Calendrier</h2>
+      <p>Les prochains convois et événements organisés par J.B.C Crome, mois par mois. Rejoins-nous sur le Discord pour t'inscrire.</p>
     </div>
 
-    <div id="events-container">
-      <div class="empty-state">Chargement des événements…</div>
+    <div class="cal-wrap">
+      <div class="cal-toolbar">
+        <div class="cal-nav">
+          <button class="cal-nav-btn" id="cal-prev" aria-label="Mois précédent">‹</button>
+          <span class="cal-title" id="cal-title">—</span>
+          <button class="cal-nav-btn" id="cal-next" aria-label="Mois suivant">›</button>
+          <button class="cal-today-btn" id="cal-today">Aujourd'hui</button>
+        </div>
+        <div class="cal-legend">
+          <span class="cal-legend-item"><span class="cal-legend-dot open"></span>Ouvert</span>
+          <span class="cal-legend-item"><span class="cal-legend-dot closed"></span>Terminé</span>
+        </div>
+      </div>
+
+      <div class="cal-daynames">
+        <span class="cal-dayname">Lun</span>
+        <span class="cal-dayname">Mar</span>
+        <span class="cal-dayname">Mer</span>
+        <span class="cal-dayname">Jeu</span>
+        <span class="cal-dayname">Ven</span>
+        <span class="cal-dayname">Sam</span>
+        <span class="cal-dayname">Dim</span>
+      </div>
+
+      <div class="cal-grid" id="cal-grid">
+        <div class="cal-loading">Chargement du calendrier…</div>
+      </div>
     </div>
 </section>
 
@@ -466,7 +308,6 @@
   setTimeout(forceScrollTop, 350);
 })();
 </script>
-
 
 <script>
 (function(){
@@ -530,16 +371,27 @@
 })();
 </script>
 
-
 <script>
 (function(){
-  // Remplace par le domaine ngrok fixe de ton bot (même base que /api/classement).
+  // Même API que evenements.html — remplace par le domaine ngrok fixe de ton bot si besoin.
   const EVENTS_API_URL = "https://caviar-gatherer-matriarch.ngrok-free.dev/api/events";
-  const container = document.getElementById('events-container');
-  if(!container) return;
+
+  const grid = document.getElementById('cal-grid');
+  const titleEl = document.getElementById('cal-title');
+  const btnPrev = document.getElementById('cal-prev');
+  const btnNext = document.getElementById('cal-next');
+  const btnToday = document.getElementById('cal-today');
+  if(!grid) return;
 
   const MOIS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-  const MOIS_ABREGE = ['JANV','FÉVR','MARS','AVR','MAI','JUIN','JUIL','AOÛT','SEPT','OCT','NOV','DÉC'];
+
+  const aujourdhui = new Date();
+  aujourdhui.setHours(0,0,0,0);
+
+  let vueAnnee = aujourdhui.getFullYear();
+  let vueMois = aujourdhui.getMonth(); // 0-11
+  let eventsParJour = {}; // "YYYY-M-D" -> [events]
+  let evenementsCharges = false;
 
   function escapeHtml(str){
     return String(str).replace(/[&<>"']/g, c => ({
@@ -547,79 +399,19 @@
     }[c]));
   }
 
-  function descriptionHTML(desc){
-    if(!desc) return '';
-    if(Array.isArray(desc)){
-      return '<ul class="event-desc-list">' + desc.map(item => '<li>' + escapeHtml(item) + '</li>').join('') + '</ul>';
-    }
-    return '<p class="event-desc">' + escapeHtml(desc) + '</p>';
+  function cleJour(d){
+    return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
   }
 
-  function imageHTML(ev){
-    const flecheHref = ev.lien ? ' href="' + escapeHtml(ev.lien) + '" target="_blank" rel="noopener"' : '';
-    const flecheTag = ev.lien ? 'a' : 'span';
-    if(ev.image){
-      return '<div class="event-image" style="background-image:url(\'' + escapeHtml(ev.image) + '\')">'
-        + '<' + flecheTag + ' class="event-arrow"' + flecheHref + '>→</' + flecheTag + '>'
-        + '</div>';
-    }
-    if(ev.lien){
-      return '<div class="event-image no-image">'
-        + '<' + flecheTag + ' class="event-arrow"' + flecheHref + '>→</' + flecheTag + '>'
-        + '</div>';
-    }
-    return '';
-  }
-
-  function eventRowHTML(ev){
-    const d = new Date(ev.date);
-    const jour = isNaN(d) ? '' : d.getDate();
-    const moisAbrege = isNaN(d) ? '' : MOIS_ABREGE[d.getMonth()];
-    return '<div class="event-row">'
-      + '<div class="event-badge"><span class="day">' + jour + '</span><span class="month">' + moisAbrege + '</span></div>'
-      + '<div class="event-content">'
-      + (ev.categorie ? '<span class="event-tag">' + escapeHtml(ev.categorie) + '</span>' : '')
-      + '<h3>' + escapeHtml(ev.titre || '') + '</h3>'
-      + (ev.lieu ? '<span class="event-location">📍 ' + escapeHtml(ev.lieu) + '</span>' : '')
-      + descriptionHTML(ev.description)
-      + '</div>'
-      + imageHTML(ev)
-      + '</div>';
-  }
-
-  function grouperParMois(events){
-    const groupes = [];
-    const index = {};
+  function indexerEvenements(events){
+    eventsParJour = {};
     events.forEach(function(ev){
       const d = new Date(ev.date);
       if(isNaN(d)) return;
-      const cle = d.getFullYear() + '-' + d.getMonth();
-      if(!(cle in index)){
-        index[cle] = { titre: MOIS[d.getMonth()] + ' ' + d.getFullYear(), tri: d.getFullYear() * 12 + d.getMonth(), events: [] };
-        groupes.push(index[cle]);
-      }
-      index[cle].events.push(ev);
+      const cle = cleJour(d);
+      if(!eventsParJour[cle]) eventsParJour[cle] = [];
+      eventsParJour[cle].push(ev);
     });
-    groupes.sort((a, b) => a.tri - b.tri);
-    return groupes;
-  }
-
-  function afficherEvenements(events){
-    const valides = events.filter(ev => !isNaN(new Date(ev.date)));
-    if(!valides.length){
-      container.innerHTML = '<div class="empty-state">Aucun événement prévu pour le moment.</div>';
-      return;
-    }
-    valides.sort((a, b) => new Date(a.date) - new Date(b.date));
-    const groupes = grouperParMois(valides);
-
-    container.innerHTML = groupes.map(function(groupe){
-      return '<div class="month-group">'
-        + '<h3 class="month-title">' + escapeHtml(groupe.titre) + '</h3>'
-        + '<div class="month-divider"></div>'
-        + groupe.events.map(eventRowHTML).join('')
-        + '</div>';
-    }).join('');
   }
 
   async function chargerEvenements(){
@@ -627,24 +419,81 @@
       const url = EVENTS_API_URL + (EVENTS_API_URL.includes('?') ? '&' : '?') + 'ngrok-skip-browser-warning=true';
       const res = await fetch(url, {
         cache: 'no-store',
-        headers: {
-          // Comme pour /api/classement : nécessaire pour éviter la page
-          // d'avertissement ngrok qui casserait le CORS.
-          'ngrok-skip-browser-warning': 'true'
-        }
+        headers: { 'ngrok-skip-browser-warning': 'true' }
       });
       if(!res.ok) throw new Error('HTTP ' + res.status);
       const events = await res.json();
-      if(!Array.isArray(events) || events.length === 0){
-        container.innerHTML = '<div class="empty-state">Aucun événement prévu pour le moment.</div>';
-        return;
-      }
-      afficherEvenements(events);
+      indexerEvenements(Array.isArray(events) ? events : []);
+      evenementsCharges = true;
     }catch(err){
-      console.warn('[events] Échec chargement /api/events', err);
-      container.innerHTML = '<div class="empty-state">Événements indisponibles : ' + err.message + '</div>';
+      console.warn('[calendrier] Échec chargement /api/events', err);
+      evenementsCharges = false;
+    }
+    rendreCalendrier();
+  }
+
+  function rendreCalendrier(){
+    titleEl.textContent = MOIS[vueMois] + ' ' + vueAnnee;
+
+    const premierDuMois = new Date(vueAnnee, vueMois, 1);
+    // Lundi = 0 ... Dimanche = 6
+    const decalage = (premierDuMois.getDay() + 6) % 7;
+    const debutGrille = new Date(vueAnnee, vueMois, 1 - decalage);
+
+    let html = '';
+    for(let i = 0; i < 42; i++){
+      const jourDate = new Date(debutGrille.getFullYear(), debutGrille.getMonth(), debutGrille.getDate() + i);
+      const estMoisCourant = jourDate.getMonth() === vueMois;
+      const estAujourdhui = jourDate.getTime() === aujourdhui.getTime();
+      const evenementsJour = eventsParJour[cleJour(jourDate)] || [];
+
+      let classesCell = 'cal-cell';
+      if(!estMoisCourant) classesCell += ' other-month';
+      if(estAujourdhui) classesCell += ' today';
+      if(evenementsJour.some(ev => new Date(ev.date) >= aujourdhui)) classesCell += ' has-open';
+      else if(evenementsJour.length) classesCell += ' has-closed';
+
+      let pillsHtml = '';
+      if(evenementsJour.length){
+        pillsHtml = '<div class="cal-events">' + evenementsJour.map(function(ev){
+          const ouvert = new Date(ev.date) >= aujourdhui;
+          const classe = 'cal-event-pill ' + (ouvert ? 'open' : 'closed');
+          const titre = escapeHtml(ev.titre || 'Événement');
+          if(ev.lien){
+            return '<a class="' + classe + '" href="' + escapeHtml(ev.lien) + '" target="_blank" rel="noopener" title="' + titre + '">' + titre + '</a>';
+          }
+          return '<span class="' + classe + '" title="' + titre + '">' + titre + '</span>';
+        }).join('') + '</div>';
+      }
+
+      html += '<div class="' + classesCell + '">'
+        + '<span class="cal-daynum">' + jourDate.getDate() + '</span>'
+        + pillsHtml
+        + '</div>';
+    }
+
+    if(!evenementsCharges){
+      grid.innerHTML = '<div class="cal-error" style="grid-column:1/-1;">Événements indisponibles pour le moment — le calendrier s\'affiche quand même.</div>' + html;
+    } else {
+      grid.innerHTML = html;
     }
   }
+
+  btnPrev.addEventListener('click', function(){
+    vueMois--;
+    if(vueMois < 0){ vueMois = 11; vueAnnee--; }
+    rendreCalendrier();
+  });
+  btnNext.addEventListener('click', function(){
+    vueMois++;
+    if(vueMois > 11){ vueMois = 0; vueAnnee++; }
+    rendreCalendrier();
+  });
+  btnToday.addEventListener('click', function(){
+    vueAnnee = aujourdhui.getFullYear();
+    vueMois = aujourdhui.getMonth();
+    rendreCalendrier();
+  });
 
   chargerEvenements();
 })();
